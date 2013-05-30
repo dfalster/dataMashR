@@ -3,4 +3,4 @@ dataMashR
 
 Daniel Falster, Remko Duursma, Rich FitzJohn, Diego Barneche
 
-Code for merging data from different studies in a transparent way
+An R package for merging data from different studies in a transparent and reproducible fashion
