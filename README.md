@@ -11,4 +11,4 @@ For `dataMashR` developers:
 
 Dependency graph
 ----------------
-(dep.png)
+![Dependency graph](dep.png)
