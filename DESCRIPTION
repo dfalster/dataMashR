@@ -1,0 +1,16 @@
+Package: dataMashR
+Type: Package
+Title: Mash data transparantly and reproducibly
+Version: 0.0
+Date: 2013-06-03
+Depends:
+    bibtex,
+Author: Daniel Falster, Remko Duursma, Rich FitzJohn, Diego Barneche
+Maintainer: Remko Duursma <remkoduursma@gmail.com>
+Description: A package for merging data from different studies in a transparent
+    and reproducible fashion
+License: GPL
+Collate:
+    'import.R'
+    'utilties.R'
+    'conversions.R'
