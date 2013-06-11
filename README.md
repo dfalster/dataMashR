@@ -29,7 +29,7 @@ Data preparation
     species, exampleSpecies1, latitude, 10.5, from paper (D Falster). 
 	- `pdf-Aiba2005.pdf`:
 	- `questions.txt`:
-	- `studyContact.csv`: Who's responsible for the dataset? Email, address?
+	- `studyContact.csv`: Who's responsible for the dataset? emailed, address?
 	- `studyMetadata.txt`:
 	- `studyRef.csv`: a single line with the full reference where the dataset comes from.
 	
@@ -50,6 +50,6 @@ Diego has written some functions to help create the above files.
 0. File set-up incomplete (does not pass tests)
 1. Data processed, but incomplete, or not verified by co-author
 2. Report sent to co-author, issues outstanding
-3. Finish Data processed and verified by co-author
+3. Finish data processing, verified by co-author, updated report sent.
 
 
