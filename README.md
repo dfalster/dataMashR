@@ -45,3 +45,11 @@ Diego has written some functions to help create the above files.
 
 4. Fill in values for `dataMatchColumns.csv`, `dataManipulate.R`, `dataNew.csv`,  `studyContact.csv`, `questions.txt`, `StudyRef.csv`.
   
+## Stages of import
+
+0. File set-up incomplete (does not pass tests)
+1. Data processed, but incomplete, or not verified by co-author
+2. Report sent to co-author, issues outstanding
+3. Finish Data processed and verified by co-author
+
+
