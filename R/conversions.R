@@ -66,7 +66,7 @@ kg.l.kg.m3       <-  function(x){x*1000} #from kilograms/litre to kg/m3
 g.g.kg.kg        <-  function(x){x} #stays the same  
 
 #' @rdname conversion
-transform <- function(x, unit.from, unit.to) {
+changeUnits <- function(x, unit.from, unit.to) {
   if (unit.from != unit.to)
     x <- match.fun(paste(unit.from, unit.to, sep="."))(x)
   x

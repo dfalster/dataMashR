@@ -156,7 +156,7 @@ convertData <- function(studyName, data){
     if (info$type[[col]] == "numeric" ) {
       unit.from <- var.match$unit_in[idx]
       unit.to   <- info$units[[col]]
-      data[[col]] <- transform(data[[col]], unit.from, unit.to)
+      data[[col]] <- changeUnits(data[[col]], unit.from, unit.to)
     }
 
     method <- var.match$method[idx]
