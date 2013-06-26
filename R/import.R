@@ -23,15 +23,15 @@ startDataMashR <- function(dir.raw = "data", dir.clean = "output/data", dir.conf
 }
 
 checkMashrIsSetup<-function(){
-  if(!exists("mashrConfig")){
+  if(!exists(".mashrConfig")){
     mashrConfig <-list()
-    assign("mashrConfig", startDataMashR(),envir = .GlobalEnv) 
+    assign(".mashrConfig", startDataMashR(),envir = .GlobalEnv) 
   }
 }
 
 mashrDetail <- function(detail){
   checkMashrIsSetup()
-  mashrConfig[[detail]]
+  .mashrConfig[[detail]]
 }
          
 data.path <- function(studyName, ...){
