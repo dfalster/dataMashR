@@ -10,6 +10,26 @@ For `dataMashR` developers:
   roxygen compilation under `Build\Configure build tools...\Configure`.
 * Do NOT edit the Rd files in /man manually. Ever.
 
+**WARNING:** Please note, this package is currently under active development. If you decide to use it, please be aware that the package structure is unstable, so future changes may break your scripts.
+
+Dependency graph
+----------------
+![Dependency graph](dep.png)
+
+Issues to discuss, following Diego's trial on a new project
+----------------
+
+**Documentation** - how does one set up a project using dataMashR? How does one organize its project before the initial files set up? How does one follow each step at a time (e.g. go to R, uses the function to setup files, go back to created files, fill them in accordingly, go back to R, runs function loadStudies) ?
+
+**Interplay between dataManipulate, dataMatchColumns and dataNew.** This is crucial to the user's understanding in my opinion. How manipulating columns in different files affect the flow. For example, when one sets up files initially, the dataMatchColumns will contain all columns from the original .csv; however, if for some reason you create or delete a column within dataManipulate, the user will have to manually add/delete that column from dataMatchColumns. Also, if a column is called, say, Site, and it is very important indexing to create for example the column status in dataNew, one has to indicate Site as status in var.out in dataMatchColumns, otherwise the system won't recognise the entry Site for the lookUpVariable in dataNew. That may sound trivial to us, but will certainly cause confusion in the user that only wants to run things quickly. That brings the issue that we should make it very clear that this is not a one-line-script-that-will-give-back-a-ready-product package. At the same time, we must explicitly raise all the advantages of doing it 'our' way, and why we don't use, say, mySQL and relational databases.
+
+**studyRef.bib** I made a change and removed studyRef.csv from new set ups. I substituted that for a standard unpublished-study bib format (check it out in the repo). However, for projects that have defined references (like baad) we may want to create a function that grabs a table predefined by the user with study names and DOIs? That way it would automatically try to download the correct studyRef.bib? Otherwise the entry could be unpublished and would return this unpublished format I created as a standard.
+
+**paths** dirRawData, dirCleanData, how do those sit in the current version of the package? Are they going to be fixed? Or are we coding it in such a way that the user will have the freedom to name folders on its own desired way?
+
+**variableDefinitions:** We need a full documentation of variableDefinitions as many functions need some fixed columns (e.g. methodsVariable) in order for this to work. I made a small change to that as well in import.R, however one still needs that column in their var.def file to work. As I mentioned to you already, in the initial set up, we could add the creation of variableDefinitions, methodsDefinitions, etc?
+
+
 Setup
 ----------------
 The function `startDataMashR` defines location of various folders needed to run
@@ -18,10 +38,6 @@ dataMashR. If it hasn't already been run, this function is called from
 
 If you want to deviate from default setup, you need to re-define `startDataMashR`
 or run it with custom names, before running anything else in the dataMashR package.
-
-Dependency graph
-----------------
-![Dependency graph](dep.png)
 
 Data preparation
 ----------------
