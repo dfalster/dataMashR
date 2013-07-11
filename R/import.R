@@ -325,7 +325,7 @@ setUpFiles  <-  function(newStudy, quiet=FALSE){
   if(!quiet)message("creates dataManipulate.R")
   filename  <-  paste0(mashrDetail("dir.raw"), "/", newStudy, "/dataManipulate.R")
   if(!file.exists(filename)){
-    manip     <-  ""
+    manip     <-  c("manipulate  <-  function(raw){", "\n\traw", "\n}")
     write(manip, paste0(mashrDetail("dir.raw"),"/",newStudy,"/dataManipulate.R"))
   }  
   
