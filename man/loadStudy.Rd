@@ -5,17 +5,19 @@
   loadStudy(studyName, reprocess = FALSE, verbose = FALSE)
 }
 \arguments{
-  \item{studyName:}{name of folder where data stored}
+  \item{studyName}{name of folder where data is stored}
 
-  \item{reprocess:}{force data to be reprocessed}
+  \item{reprocess}{force data to be reprocessed}
 
-  \item{verbose:}{print tsages to screen, good for
-  isolating problems}
+  \item{verbose}{print stages to screen, good for isolating
+  problems}
 }
 \value{
-  list with three parts: data, reference, contact
+  list with three parts: data via readDataProcessed(),
+  reference via readReference(), contact via readContact()
 }
 \description{
-  Load data from specified studyName
+  Compiles a standardised list for a folder containing a
+  dataset.
 }
 

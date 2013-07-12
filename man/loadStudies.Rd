@@ -6,8 +6,8 @@
     reprocess = FALSE, verbose = FALSE)
 }
 \arguments{
-  \item{studyNames}{Character vector of study names to be
-  added}
+  \item{studyNames}{Character vector containing study names
+  to be added. The default adds names via getStudyNames()}
 
   \item{data}{If provided, will add studies to this
   dataframe}
@@ -23,7 +23,8 @@
   each is a dataframe with all data combined.
 }
 \description{
-  Adds studies to the central dataset
+  Standardises all folders within one main directory
+  (default=data) and combines them into one single dataset
+  via loadStudy()
 }
-\keyword{misc}
 

@@ -1,0 +1,18 @@
+\name{readDataProcessed}
+\alias{readDataProcessed}
+\title{Reads processed and standardised dataset}
+\usage{
+  readDataProcessed(studyName, reprocess = TRUE)
+}
+\arguments{
+  \item{studyName}{name of folder where data is stored}
+
+  \item{reprocess}{force data to be reprocessed}
+}
+\value{
+  standardised data.frame
+}
+\description{
+  Reads processed and standardised dataset.
+}
+

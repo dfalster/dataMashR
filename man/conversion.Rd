@@ -1,4 +1,5 @@
 \name{g.kg}
+\alias{changeUnits}
 \alias{cm.m}
 \alias{cm2.g.kg.m2}
 \alias{cm2.kg.kg.m2}
@@ -18,7 +19,6 @@
 \alias{mmol.N.kg.kg.kg}
 \alias{months.yr}
 \alias{per.kg.kg}
-\alias{transform}
 \title{Unit conversion functions}
 \usage{
   g.kg(x)
@@ -59,7 +59,7 @@
 
   g.g.kg.kg(x)
 
-  transform(x, unit.from, unit.to)
+  changeUnits(x, unit.from, unit.to)
 }
 \arguments{
   \item{x}{The measurement in original units}

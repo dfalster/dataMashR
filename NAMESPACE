@@ -1,1 +1,5 @@
-exportPattern("^[^\\.]")
+export(loadStudies)
+export(loadStudy)
+export(readDataProcessed)
+export(readNewFiles)
+export(setUpFiles)
