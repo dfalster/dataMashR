@@ -44,14 +44,13 @@ getStudyNames <-function(){
 }
 
 #' Adds studies to the central dataset
-#' @description Standardises all studies within one main directory (default=data) and combines them into one single dataset.
+#' @description Standardises all folders within one main directory (default=data) and combines them into one single dataset via loadStudy()
 #' @param studyNames Character vector containing study names to be added. The default adds names via getStudyNames()
 #' @param data If provided, will add studies to this dataframe
 #' @param reprocess If TRUE, will reprocess studies even if they already exist in the data directory
 #' @param verbose If TRUE, print messages to screen, good for isolating problems  
 #' @return merged list with three parts: data, reference, contact,
 #'    each is a dataframe with all data combined.
-#' @keywords misc
 #' @export
 loadStudies <- function(studyNames=getStudyNames(), data=NULL,
                         reprocess=FALSE, verbose=FALSE) {
@@ -64,11 +63,11 @@ loadStudies <- function(studyNames=getStudyNames(), data=NULL,
 }
 
 #' Load data from specified studyName
-#'
-#' @param studyName: name of folder where data stored
-#' @param reprocess: force data to be reprocessed
-#' @param verbose: print tsages to screen, good for isolating problems  
-#' @return list with three parts: data, reference, contact
+#' @description Compiles a standardised list for a folder containing a dataset.
+#' @param studyName name of folder where data is stored
+#' @param reprocess force data to be reprocessed
+#' @param verbose print stages to screen, good for isolating problems  
+#' @return list with three parts: data via readDataProcessed(), reference via readReference(), contact via readContact()
 #' @export
 loadStudy <- function(studyName, reprocess=FALSE, verbose=FALSE) {
     
@@ -80,6 +79,12 @@ loadStudy <- function(studyName, reprocess=FALSE, verbose=FALSE) {
        contact=readContact(studyName))
 }
 
+#' Reads processed and standardised dataset
+#' @description Reads processed and standardised dataset.
+#' @param studyName name of folder where data is stored
+#' @param reprocess force data to be reprocessed
+#' @return standardised data.frame
+#' @export
 readDataProcessed <- function(studyName, reprocess=TRUE) {
   filename <- studyDataFile(studyName)
   if ( reprocess || !file.exists(filename) )
