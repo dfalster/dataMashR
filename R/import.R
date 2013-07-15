@@ -263,7 +263,7 @@ readNewData <- function(studyName) {
       import$lookupVariable[import$lookupVariable == ""] <- NA
       nameIsOK <- import$newVariable %in% mashrDetail("var.def")$Variable
       if (any(!nameIsOK)) 
-        stop("Incorrect name in var_out columns of dataMatchColumns.csv for ",
+        stop("Incorrect name in newVariable column of dataNew.csv for ",
              studyName, "--> ", paste(import$newVariable[!nameIsOK],
                                       collapse=", "))
     } else {
