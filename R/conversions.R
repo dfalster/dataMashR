@@ -54,7 +54,7 @@ cm2.kg.kg.m2     <-  function(x){1000/x} #from cm2/kg to kg/m2
 mmol.N.kg.kg.kg  <-  function(x){x*14e-6} #from mmol of nitrogen/kg to kg/kg
 
 #' @rdname conversion
-Mg.kg            <-  function(x){x/1000} #from megagrams (Mg) to kg
+Mg.kg            <-  function(x){x*1000} #from megagrams (Mg) to kg
 
 #' @rdname conversion
 g.l.kg.m3        <-  function(x){x} #from grams/litre to kg/m3
