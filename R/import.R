@@ -29,6 +29,8 @@ checkMashrIsSetup<-function(){
   }
 }
 
+
+#' @export
 mashrDetail <- function(detail){
   checkMashrIsSetup()
   .mashrConfig[[detail]]
@@ -464,6 +466,7 @@ getContributors<-function(data){
   data$contact[!duplicated(d$contact$name),]
 }
 
+#' @export
 extractStudy<-function(alldata, study){
   for(var in c("data", "ref", "contact"))
     alldata[[var]]<-alldata[[var]][alldata[[var]]$dataset == study,]

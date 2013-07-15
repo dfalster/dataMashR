@@ -1,5 +1,7 @@
+export(extractStudy)
 export(loadStudies)
 export(loadStudy)
+export(mashrDetail)
 export(readDataProcessed)
 export(readNewFiles)
 export(setUpFiles)
