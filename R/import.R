@@ -35,7 +35,8 @@ mashrDetail <- function(detail){
   checkMashrIsSetup()
   .mashrConfig[[detail]]
 }
-         
+
+#' @export
 data.path <- function(studyName, ...){
   file.path(mashrDetail("dir.raw"), studyName, ...)  
 }
