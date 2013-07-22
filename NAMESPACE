@@ -1,3 +1,4 @@
+export(data.path)
 export(extractStudy)
 export(loadStudies)
 export(loadStudy)
