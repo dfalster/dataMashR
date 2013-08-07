@@ -467,7 +467,7 @@ setUpFiles  <-  function(newStudy, quiet=FALSE){
                        "\n\tyear = {0000},",
                        "\n\tpages = {},",
                        "\n}")
-    write(bibRef, paste0(dir.rawData,"/",newStudy,"/studyRef.bib"))
+    write(bibRef, paste0(mashrDetail("dir.raw"),"/",newStudy,"/studyRef.bib"))
   }
   
 }
