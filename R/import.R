@@ -448,7 +448,7 @@ setUpFiles  <-  function(newStudy, quiet=FALSE){
     metadat  <-  data.frame(Topic=c("Sampling strategy", "Leaf area", "Stem cross sectional area", "Height", "Crown area", "Biomass", "traits", "Growth environment", "Other variables"),
                             Description=c("Please provide a brief description of the sampling strategy used in this paper (up to 4 sentences)", rep("Please provide ...",8)),
                             stringsAsFactors=FALSE)    
-    write.csv(metadat, paste0(mashrDetail("dir.raw"),"/",newStudy,"/studyMetadata.csv"))
+    write.csv(metadat, paste0(mashrDetail("dir.raw"),"/",newStudy,"/studyMetadata.csv"), row.names=FALSE)
   }
   
   #creates and writes studyRef.bib
@@ -463,7 +463,7 @@ setUpFiles  <-  function(newStudy, quiet=FALSE){
                        "\n\tabstract = {},",
                        "\n\tjournal = {Unpublished},",
                        "\n\tnumber = {},",
-                       "\n\tauthor = {lbmm},",
+                       "\n\tauthor = {Missing},",
                        "\n\tyear = {0000},",
                        "\n\tpages = {},",
                        "\n}")
