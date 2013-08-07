@@ -378,7 +378,7 @@ readNewFiles  <-  function(newStudy){
 ##' @export
 setUpFiles  <-  function(newStudy, quiet=FALSE){
   
-  prog  <-  mashrDetail("prog")
+  prog  <-  read.csv(paste0(mashrDetail("dir.config"), "/", mashrDetail("config.files")$progress), h=TRUE, stringsAsFactors=FALSE)  
   if(newStudy %in% prog$study == FALSE)
     stop(paste0("You first need to add ", newStudy, " to progress.csv via identifyNewStudies()"))
     
