@@ -336,7 +336,7 @@ readNewData <- function(studyName) {
 #' @returns writes dataImportOptions.csv to study folder
 #' @export
 makeDataImport  <-  function(newStudy){
-  impo      <-  data.frame(name=c("header","skip"),data.csv=c(TRUE,0),row.names=NULL)
+  impo      <-  data.frame(name=c("header","skip"),data.csv=c("TRUE",0),row.names=NULL)
   filename  <-  paste0(mashrDetail("dir.raw"), "/", newStudy, "/dataImportOptions.csv")
   if(!file.exists(filename)){
     write.csv(impo, paste0(mashrDetail("dir.raw"), "/", newStudy, "/dataImportOptions.csv"),row.names=FALSE)
