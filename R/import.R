@@ -4,28 +4,31 @@
 # TODO: test if config files have correct extensions, 
 
 startDataMashR <- function(dir.raw = "data", dir.clean = "output/data", dir.config = "config", 
-                            config.files = list(methods = "methodsDefinitions.csv", 
-                                                processs = "methodsDefinitions.csv", 
-                                                variables = "variableDefinitions.csv") ){
+                           config.files = list(methods = "methodsDefinitions.csv", 
+                                               processs = "methodsDefinitions.csv", 
+                                               variables = "variableDefinitions.csv",
+                                               progress = "progress.csv") ){
   
   var.def   = read.table(file.path(dir.config, config.files$variables), h=TRUE, stringsAsFactors=FALSE, sep =",")#variable definitions
   met.def   = NA
   if(!is.na(config.files$methods)) 
-    met.def   = read.table(file.path(dir.config, config.files$methods), h=TRUE, stringsAsFactors=FALSE, sep =",")#definition of methods
+    met.def = read.table(file.path(dir.config, config.files$methods), h=TRUE, stringsAsFactors=FALSE, sep =",")#definition of methods
+  prog      = read.csv(file.path(dir.config, config.files$progress), h=TRUE, stringsAsFactors=FALSE)#project progress
   
   list(dir.raw   = dir.raw,
        dir.clean = dir.clean,
        dir.config= dir.config,
        config.files = config.files,
        var.def=var.def,
-       met.def=met.def
-       )
+       met.def=met.def,
+       prog=prog
+  )
 }
 
 checkMashrIsSetup<-function(){
   if(!exists(".mashrConfig")){
     mashrConfig <-list()
-    assign(".mashrConfig", startDataMashR(),envir = .GlobalEnv) 
+    assign(".mashrConfig", startDataMashR(), envir = .GlobalEnv) 
   }
 }
 
@@ -44,6 +47,52 @@ data.path <- function(studyName, ...){
 # Get list of studies included in database
 getStudyNames <-function(){  
   dir(mashrDetail("dir.raw"))
+}
+
+#' @export
+projectFiles  <-  function(){
+  tolower(c("data.csv", "dataImportOptions.csv", "dataManipulate.r", "dataMatchColumns.csv", 
+            "dataNew.csv", "studyContact.csv", "studyMetadata.csv", "studyRef.bib"))
+}
+
+#' Identifies new studies within the project directory
+#' @description Returns all studies that still do not contain inital files set up done.
+#' @param studyNames Character vector containing study names to be investigated. 
+#'        The default adds names via \code{getStudyNames()}
+#' @param verbose If TRUE, print messages to screen, good for isolating problems  
+#' @details This function searches for new studies within \code{mashrConfig("dir.raw")} 
+#'          and returns those that were identified as new to the project, i.e.,
+#'          not processed. This output shoulb be further used in \code{makeDataImport} 
+#'          and \code{setUpFiles} to implement initial files. See also \code{projectFiles}.
+#' @return a vector of study names 
+#' @export
+identifyNewStudies <- function(studyNames=getStudyNames(), verbose=TRUE) {
+  files.list <- as.character(unlist(sapply(studyNames, function(x){
+    files    <-  tolower(list.files(paste0(mashrDetail("dir.raw"), "/", x)))
+    if(!all(projectFiles() %in% files)){
+      if(verbose)
+        print(paste0("In ", x, ": initial project setup is incomplete, the file(s) ", 
+                     paste0(projectFiles()[projectFiles() %in% files==FALSE],collapse=", "),
+                     " is (are) missing. Please check functions makeDataImport and setUpFiles"
+        ))
+      return(x)
+    }
+  })))
+  
+  if(length(files.list) > 0){
+    cat("\n adding", files.list, "to progress.csv \n")
+    prog  <-  mashrDetail("prog")
+    if(any(files.list %in% prog$study))
+      prog  <-  prog[prog$study %in% files.list  == FALSE, ]
+    prog  <-  rbind(prog, data.frame(study=files.list, 
+                                     progress=0, 
+                                     comment="new study", 
+                                     stringsAsFactors=FALSE))
+    prog  <-  prog[order(prog$study),]
+    write.csv(prog, paste0(mashrDetail("dir.config"), "/", mashrDetail("config.files")$progress), row.names=FALSE)  
+  }
+  
+  files.list  
 }
 
 #' Adds studies to the central dataset
@@ -73,10 +122,10 @@ loadStudies <- function(studyNames=getStudyNames(), data=NULL,
 #' @return list with three parts: data via readDataProcessed(), reference via readReference(), contact via readContact()
 #' @export
 loadStudy <- function(studyName, reprocess=FALSE, verbose=FALSE) {
-    
+  
   if (verbose)
     cat(studyName, " ")
-
+  
   list(data=readDataProcessed(studyName, reprocess),
        ref=readReference(studyName),
        contact=readContact(studyName))
@@ -102,9 +151,9 @@ readDataProcessed <- function(studyName, reprocess=TRUE) {
 #' @param verbose If TRUE, prints progress messages.
 #' @return Transformed data saved in file output/data/studyName.csv
 processStudy <- function(studyName, verbose=FALSE) {
-
+  
   if (verbose) cat(studyName, " ")
-
+  
   outputName <- studyDataFile(studyName)
   
   if (verbose) cat("load data\n")
@@ -132,7 +181,7 @@ processStudy <- function(studyName, verbose=FALSE) {
   if(!file.exists(mashrDetail("dir.clean")))
     dir.create(mashrDetail("dir.clean"), recursive=TRUE)  
   write.csv(data, outputName, row.names=FALSE)
-
+  
   data
 }
 
@@ -191,9 +240,9 @@ getManipulateData <- function(studyName) {
 convertData <- function(studyName, data){
   var.match <- readMatchColumns(studyName)
   info <- columnInfo()
-
+  
   data <- rename(data, var.match$var_in, var.match$var_out)
-
+  
   for ( col in intersect(names(data), var.match$var_out) ) {
     idx <- match(col, var.match$var_out)[[1]]
     if (info$type[[col]] == "numeric" ) {
@@ -201,12 +250,12 @@ convertData <- function(studyName, data){
       unit.to   <- info$units[[col]]
       data[[col]] <- changeUnits(data[[col]], unit.from, unit.to)
     }
-
+    
     method <- var.match$method[idx]
     if ( !is.na(method) )
       data[[paste("method", col, sep="_")]] <- method
   }
-
+  
   data
 }
 
@@ -325,6 +374,15 @@ readNewFiles  <-  function(newStudy){
 ##' @return Nothing; directories are created
 ##' @export
 setUpFiles  <-  function(newStudy, quiet=FALSE){
+  
+  prog  <-  mashrDetail("prog")
+  if(newStudy %in% prog$study == FALSE)
+    stop(paste0("You first need to add ", newStudy, " to progress.csv via identifyNewStudies()"))
+    
+  prog$progress[prog$study == newStudy]  <-  1
+  prog  <-  prog[order(prog$study),]
+  write.csv(prog, paste0(mashrDetail("dir.config"), "/", mashrDetail("config.files")$progress), row.names=FALSE)  
+  
   if(!quiet)message("Setting up files for ", newStudy)
   
   #creates and writes dataManipulate.R
@@ -398,26 +456,27 @@ setUpFiles  <-  function(newStudy, quiet=FALSE){
                            stringsAsFactors=FALSE)
     write.csv(sturef, paste0(mashrDetail("dir.raw"),"/",newStudy,"/studyRef.csv"), row.names=FALSE)
   }
+  
 }
 
 readMatchColumns <- function(studyName) {
   filename <- file.path(mashrDetail("dir.raw"), studyName, "dataMatchColumns.csv")
   var.match <- read.csv(filename, header=TRUE, stringsAsFactors=FALSE,
                         na.strings=c("NA", ""), strip.white=TRUE)
-
+  
   nameIsOK <- (var.match$var_out[!is.na(var.match$var_out)] %in%
-               mashrDetail("var.def")$Variable)
+                 mashrDetail("var.def")$Variable)
   if (any(!nameIsOK))
     
     stop("Incorrect name in var_out columns of dataMatchColumns.csv for ",
          studyName, "--> ",
          paste(var.match$var_out[!nameIsOK], collapse=", "))
-
+  
   if ( any(is.na(var.match$var_in)) ) {
     warning("Pruning empty columns from", studyName)
     var.match <- var.match[!is.na(var.match$var_in),]
   }
-
+  
   if ( any(duplicated(na.omit(var.match$var_out))) ) {
     dups <- na.omit(unique(var.match$var_out[duplicated(var.match$var_out)]))
     warning(sprintf("Duplicated output columns in %s: %s",
@@ -436,7 +495,7 @@ makeGroups <-function(data, varNames){
   checkNameExists<-!(varNames %in% names(data))
   if(any(checkNameExists))
     stop(paste("Variable ", varNames[checkNameExists], " not found, called in dataManipulate.R"))
- 
+  
   apply(cbind(data[,varNames]), 1, function(x)paste(varNames,"=",x,collapse="; "))  
 }
 
@@ -452,7 +511,7 @@ readImport <- function(studyName) {
                  filename))
   tmp <- read.csv(filename, header=FALSE, row.names=1,
                   stringsAsFactors=FALSE)
-
+  
   defaults <- list(na.strings="NA")
   import <- modifyList(defaults,
                        structure(as.list(tmp[[1]]), names=rownames(tmp)))
@@ -492,8 +551,8 @@ readContact <- function(studyName) {
   filename <-data.path(studyName, "studyContact.csv")
   
   contact <- read.csv( filename,
-                      header=TRUE, stringsAsFactors=FALSE,
-                      strip.white=TRUE)
+                       header=TRUE, stringsAsFactors=FALSE,
+                       strip.white=TRUE)
   data.frame(dataset = studyName, contact, filename,  stringsAsFactors=FALSE)
 }
 
@@ -546,19 +605,19 @@ changeVarCsv  <-  function(study, filename, column, from, to, path=mashrDetail("
     }
   }
 }  
-  
+
 changeVarR  <-  function(study, filename, from, to, path=mashrDetail("dir.raw")){  
-    File  <-  paste0(path, "/", study, "/", filename, ".R")
-    
-    from <- paste0('"',from,'"')
-    to <- paste0('"',to,'"')
-    
-    if(file.exists(File)){
-      x     <-  readChar(File, file.info(File)$size)
-      if(length(grep(from, x)) > 0){
-        x  <-  gsub(from, to, x)
-        write(x, File)
-      }          
-    }
+  File  <-  paste0(path, "/", study, "/", filename, ".R")
+  
+  from <- paste0('"',from,'"')
+  to <- paste0('"',to,'"')
+  
+  if(file.exists(File)){
+    x     <-  readChar(File, file.info(File)$size)
+    if(length(grep(from, x)) > 0){
+      x  <-  gsub(from, to, x)
+      write(x, File)
+    }          
+  }
 }
 
