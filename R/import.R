@@ -331,7 +331,10 @@ readNewData <- function(studyName) {
 ## * Functions for creating the import directory structure for new
 ## * data.  Not reviewed yet.
 
-#first create a dataImportOptions.csv for each new study
+#' Create a dataImportOptions.csv for a new study
+#' @param newStudy study folder to add dataImportOptions.csv
+#' @returns writes dataImportOptions.csv to study folder
+#' @export
 makeDataImport  <-  function(newStudy){
   impo      <-  data.frame(name=c("header","skip"),data.csv=c(TRUE,0),row.names=NULL)
   filename  <-  paste0(mashrDetail("dir.raw"), "/", newStudy, "/dataImportOptions.csv")
