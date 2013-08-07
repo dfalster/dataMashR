@@ -451,13 +451,23 @@ setUpFiles  <-  function(newStudy, quiet=FALSE){
     write.csv(metadat, paste0(mashrDetail("dir.raw"),"/",newStudy,"/studyMetadata.csv"))
   }
   
-  #creates and writes studyRef.csv
-  if(!quiet)cat("creates studyRef.csv ")
-  filename  <-  paste0(mashrDetail("dir.raw"), "/", newStudy, "/studyRef.csv")
+  #creates and writes studyRef.bib
+  if(!quiet)cat("creates studyRef.bib ")
+  filename  <-  paste0(mashrDetail("dir.raw"), "/", newStudy, "/studyRef.bib")
   if(!file.exists(filename)){
-    sturef  <-  data.frame(reference="Missing",
-                           stringsAsFactors=FALSE)
-    write.csv(sturef, paste0(mashrDetail("dir.raw"),"/",newStudy,"/studyRef.csv"), row.names=FALSE)
+    bibRef  <-  paste0("@article{",newStudy,",",
+                       "\n\ttitle = {Study},",
+                       "\n\tlanguage = {en},",
+                       "\n\turl = {},",
+                       "\n\tdoi = {},",
+                       "\n\tabstract = {},",
+                       "\n\tjournal = {Unpublished},",
+                       "\n\tnumber = {},",
+                       "\n\tauthor = {lbmm},",
+                       "\n\tyear = {0000},",
+                       "\n\tpages = {},",
+                       "\n}")
+    write(bibRef, paste0(dir.rawData,"/",newStudy,"/studyRef.bib"))
   }
   
 }
