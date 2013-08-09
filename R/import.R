@@ -81,7 +81,7 @@ identifyNewStudies <- function(studyNames=getStudyNames(), verbose=TRUE) {
   
   if(length(files.list) > 0){
     cat("\n adding", files.list, "to progress.csv \n")
-    prog  <-  mashrDetail("prog")
+    prog  <-  prog  <-  read.csv(file.path(mashrDetail("dir.config"), mashrDetail("config.files")$progress),  header=TRUE, stringsAsFactors=FALSE)
     if(any(files.list %in% prog$study))
       prog  <-  prog[prog$study %in% files.list  == FALSE, ]
     prog  <-  rbind(prog, data.frame(study=files.list, 
@@ -377,8 +377,7 @@ readNewFiles  <-  function(newStudy){
 ##' @return Nothing; directories are created
 ##' @export
 setUpFiles  <-  function(newStudy, quiet=FALSE){
-  
-  prog  <-  read.csv(paste0(mashrDetail("dir.config"), "/", mashrDetail("config.files")$progress), h=TRUE, stringsAsFactors=FALSE)  
+  prog  <-  read.csv(file.path(mashrDetail("dir.config"), mashrDetail("config.files")$progress),  header=TRUE, stringsAsFactors=FALSE)  
   if(newStudy %in% prog$study == FALSE)
     stop(paste0("You first need to add ", newStudy, " to progress.csv via identifyNewStudies()"))
     
