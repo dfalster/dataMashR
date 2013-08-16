@@ -576,17 +576,17 @@ readContact <- function(studyName) {
 
 ## TODO: This might merge somewhat with the definition of var.def.
 columnInfo <- function() {
-  allowedNames <- mashrDetail("var.def")$Variable
-  type <- mashrDetail("var.def")$Type # variable type: charcater / numeric
+  allowedNames <-  mashrDetail("var.def")$Variable
+  type         <-  mashrDetail("var.def")$Type # variable type: charcater / numeric
+  names(type)  <-  allowedNames
+  
   ##Expand list to include "methods" variables, where appropriate
   if(any(mashrDetail("var.def")$methodsVariable)){
     methods <- paste0("method_", mashrDetail("var.def")$Variable[mashrDetail("var.def")$methodsVariable])
     allowedNames <- c(allowedNames, methods)
     type <- c(type, rep("character", length(methods)))
   }
-  allowedNames <- c(allowedNames, methods)
-  type <- c(type, rep("character", length(methods)))
-  names(type) <- allowedNames
+  
   units <- structure(mashrDetail("var.def")$Units, names=mashrDetail("var.def")$Variable)
   list(allowedNames=allowedNames,
        type=type,
