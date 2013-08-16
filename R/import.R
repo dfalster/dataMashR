@@ -577,7 +577,11 @@ columnInfo <- function() {
   allowedNames <- mashrDetail("var.def")$Variable
   type <- mashrDetail("var.def")$Type # variable type: charcater / numeric
   ##Expand list to include "methods" variables, where appropriate
-  methods <- paste0("method_", mashrDetail("var.def")$Variable[mashrDetail("var.def")$methodsVariable])
+  if(any(mashrDetail("var.def")$methodsVariable)){
+    methods <- paste0("method_", mashrDetail("var.def")$Variable[mashrDetail("var.def")$methodsVariable])
+    allowedNames <- c(allowedNames, methods)
+    type <- c(type, rep("character", length(methods)))
+  }
   allowedNames <- c(allowedNames, methods)
   type <- c(type, rep("character", length(methods)))
   names(type) <- allowedNames
