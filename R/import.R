@@ -267,13 +267,15 @@ convertData <- function(studyName, data){
 #' @param data data.frame, after being run through convertData
 #' @return data.frame
 addAllColumns <- function(data) {
-  info <- columnInfo()
-  missing <- setdiff(info$allowedNames, names(data))
-  missing.df <-
-    as.data.frame(lapply(info$type[missing], na.vector, nrow(data)),
-                  stringsAsFactors=FALSE)
-  data <- cbind(data[names(data) %in% info$allowedNames], missing.df)
-  data[info$allowedNames]
+  info     <-  columnInfo()
+  missing  <-  setdiff(info$allowedNames, names(data))
+  if(length(missing) != 0){
+    missing.df <-  as.data.frame(lapply(info$type[missing], na.vector, nrow(data)),stringsAsFactors=FALSE)
+    data       <-  cbind(data[, names(data) %in% info$allowedNames], missing.df)
+  } else {
+    data       <-  data[, names(data) %in% info$allowedNames]
+  }
+  data[, info$allowedNames]
 }
 
 #' Modifies data by adding new values from table studyName/dataNew.csv
