@@ -585,6 +585,7 @@ columnInfo <- function() {
     methods <- paste0("method_", mashrDetail("var.def")$Variable[mashrDetail("var.def")$methodsVariable])
     allowedNames <- c(allowedNames, methods)
     type <- c(type, rep("character", length(methods)))
+    names(type)  <-  allowedNames
   }
   
   units <- structure(mashrDetail("var.def")$Units, names=mashrDetail("var.def")$Variable)
