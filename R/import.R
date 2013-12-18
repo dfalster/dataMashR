@@ -484,7 +484,7 @@ readMatchColumns <- function(studyName) {
     
     stop("Incorrect name in var_out columns of dataMatchColumns.csv for ",
          studyName, "--> ",
-         paste(var.match$var_out[!nameIsOK], collapse=", "))
+         paste(var.match$var_out[!is.na(var.match$var_out)][!nameIsOK], collapse=", "))
   
   if ( any(is.na(var.match$var_in)) ) {
     warning("Pruning empty columns from", studyName)
