@@ -94,9 +94,9 @@ identifyNewStudies <- function(studyNames=getStudyNames(), verbose=TRUE) {
                                      stringsAsFactors=FALSE))
     prog  <-  prog[order(prog$study),]
     write.csv(prog, paste0(mashrDetail("dir.config"), "/", mashrDetail("config.files")$progress), row.names=FALSE)  
+    return(newStudies[progresses==0])
   }
   
-  newStudies[progresses==0]
 }
 
 #' Adds studies to the central dataset
