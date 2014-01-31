@@ -79,13 +79,17 @@ identifyNewStudies <- function(studyNames=getStudyNames(), verbose=TRUE) {
     }
   })))
   
-  if(length(files.list) > 0){
-    cat("\n adding", files.list, "to progress.csv \n")
-    prog  <-  prog  <-  read.csv(file.path(mashrDetail("dir.config"), mashrDetail("config.files")$progress),  header=TRUE, stringsAsFactors=FALSE)
-    if(any(files.list %in% prog$study))
-      prog  <-  prog[prog$study %in% files.list  == FALSE, ]
-    prog  <-  rbind(prog, data.frame(study=files.list, 
-                                     progress=0, 
+  prog        <-  prog  <-  read.csv(file.path(mashrDetail("dir.config"), mashrDetail("config.files")$progress),  header=TRUE, stringsAsFactors=FALSE)
+  newStudies  <-  studyNames[studyNames %in% prog$study == FALSE]
+  
+  if(length(newStudies) > 0){
+    cat("\n adding", newStudies, "to progress.csv \n")
+    if(any(newStudies %in% prog$study)) {
+      prog  <-  prog[prog$study %in% newStudies  == FALSE, ]
+    }
+    progresses  <-  as.numeric(!(newStudies %in% files.list))
+    prog        <-  rbind(prog, data.frame(study=newStudies, 
+                                     progress=progresses, 
                                      comment="new study", 
                                      stringsAsFactors=FALSE))
     prog  <-  prog[order(prog$study),]
