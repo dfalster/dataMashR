@@ -12,4 +12,3 @@ Description: A package for merging data from different studies in a transparent
 License: BSD_2_clause + file LICENSE
 Collate:
     'import.R'
-
