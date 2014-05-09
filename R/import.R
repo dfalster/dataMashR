@@ -58,7 +58,9 @@ loadStudies <- function(studyNames=getStudyNames(), data=NULL,
   vars <- c("data", "ref", "contact")
   f <- function(v)
     do.call(rbind, lapply(d, "[[", v))
-  structure(lapply(vars, f), names=vars)
+  x <- structure(lapply(vars, f), names=vars)
+  x$data <- fixType(x$data)
+  x
 }
 
 #' Load data from specified studyName
@@ -123,6 +125,8 @@ processStudy <- function(studyName, verbose=FALSE) {
   data <- addNewData(studyName, data)
   
   if (verbose) cat("write to file\n")
+  # if (verbose) cat("fix type\n")
+  # data <- fixType(data)
   
   ## Creates output directory if does not already exist 
   if(!file.exists(mashrDetail("dir.clean")))
@@ -313,6 +317,20 @@ readMatchColumns <- function(studyName) {
 makeGroups <-function(data, varNames){
   
   apply(cbind(data[,varNames]), 1, function(x)paste(varNames,"=",x,collapse="; "))  
+}
+
+## Ensures variables have correct type
+
+fixType <- function(data){
+  cfg <- mashrDetail("var.def")
+  for(i in seq_along(cfg$Variable)){
+    v <- cfg$Variable[i]
+    typeFun <- switch(cfg$Type[i],
+                      numeric = as.numeric,
+                      character = as.character)
+    data[,v] <- typeFun(data[,v])
+  }
+  data
 }
 
 #creates name of file to store processed data
