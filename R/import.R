@@ -1,13 +1,17 @@
 
 startDataMashR <- function(dir.raw = "data", dir.clean = "output/data", dir.config = "config", 
-                           config.files = list(methods = "methodsDefinitions.csv", 
-                                               processs = "methodsDefinitions.csv", 
-                                               conversions = "variableConversion.csv",
-                                               variables = "variableDefinitions.csv")){
+                           config.files = list(conversions = "variableConversion.csv",
+                                               variables = "variableDefinitions.csv",
+                                               post = "postProcess.R")){
   
   var.def <- read.table(file.path(dir.config, config.files$variables), h=TRUE, stringsAsFactors=FALSE, sep =",")#variable definitions
   conversions <- read.table(file.path(dir.config, config.files$conversions), h=TRUE, stringsAsFactors=FALSE, sep =",", check.names=FALSE)
 
+  postProcess <- function(x) x
+
+  # Redefine postProcess function, if it exists
+  if(file.exists(file.path(dir.config, config.files$post)))
+     source(file.path(dir.config, config.files$post), local=TRUE)
 
   list(dir.raw   = dir.raw,
        dir.clean = dir.clean,
@@ -15,6 +19,7 @@ startDataMashR <- function(dir.raw = "data", dir.clean = "output/data", dir.conf
        config.files = config.files,
        conversions = conversions,
        var.def=var.def,
+       postProcess = postProcess
   )
 }
 
@@ -59,7 +64,11 @@ loadStudies <- function(studyNames=getStudyNames(), data=NULL,
   f <- function(v)
     do.call(rbind, lapply(d, "[[", v))
   x <- structure(lapply(vars, f), names=vars)
+
   x$data <- fixType(x$data)
+
+  x$data <- mashrDetail("postProcess")(x$data)
+
   x
 }
 
@@ -127,6 +136,9 @@ processStudy <- function(studyName, verbose=FALSE) {
   if (verbose) cat("write to file\n")
   # if (verbose) cat("fix type\n")
   # data <- fixType(data)
+
+  # if (verbose) cat("Post process\n")
+  # data <- mashrDetail("postProcess")(data)
   
   ## Creates output directory if does not already exist 
   if(!file.exists(mashrDetail("dir.clean")))
