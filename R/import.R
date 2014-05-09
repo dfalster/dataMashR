@@ -1,3 +1,4 @@
+.mashrEnv <- new.env()
 
 startDataMashR <- function(dir.raw = "data", dir.clean = "output/data", dir.config = "config", 
                            config.files = list(conversions = "variableConversion.csv",
@@ -7,34 +8,31 @@ startDataMashR <- function(dir.raw = "data", dir.clean = "output/data", dir.conf
   var.def <- read.table(file.path(dir.config, config.files$variables), h=TRUE, stringsAsFactors=FALSE, sep =",")#variable definitions
   conversions <- read.table(file.path(dir.config, config.files$conversions), h=TRUE, stringsAsFactors=FALSE, sep =",", check.names=FALSE)
 
-  postProcess <- function(x) x
+  postProcess <- getFunctionFromSource("postProcess",
+            file.path(dir.config, config.files$post),
+            identity)
 
-  # Redefine postProcess function, if it exists
-  if(file.exists(file.path(dir.config, config.files$post)))
-     source(file.path(dir.config, config.files$post), local=TRUE)
-
-  list(dir.raw   = dir.raw,
-       dir.clean = dir.clean,
-       dir.config= dir.config,
-       config.files = config.files,
-       conversions = conversions,
-       var.def=var.def,
-       postProcess = postProcess
-  )
+  .mashrEnv$config <-
+    list(dir.raw   = dir.raw,
+         dir.clean = dir.clean,
+         dir.config= dir.config,
+         config.files = config.files,
+         conversions = conversions,
+         var.def=var.def,
+         postProcess = postProcess)
 }
+
 
 checkMashrIsSetup<-function(){
-  if(!exists(".mashrConfig")){
-    mashrConfig <-list()
-    assign(".mashrConfig", startDataMashR(), envir = .GlobalEnv) 
+  if(!exists("config", .mashrEnv)){
+    startDataMashR()
   }
 }
-
 
 #' @export
 mashrDetail <- function(detail){
   checkMashrIsSetup()
-  .mashrConfig[[detail]]
+  .mashrEnv$config[[detail]]
 }
 
 #' @export
@@ -81,6 +79,7 @@ loadStudies <- function(studyNames=getStudyNames(), data=NULL,
 #' @export
 loadStudy <- function(studyName, reprocess=FALSE, verbose=FALSE) {
   
+  # Replace cat() with message(), also drop newlines
   if (verbose)
     cat(studyName, " ")
   
@@ -140,9 +139,7 @@ processStudy <- function(studyName, verbose=FALSE) {
   # if (verbose) cat("Post process\n")
   # data <- mashrDetail("postProcess")(data)
   
-  ## Creates output directory if does not already exist 
-  if(!file.exists(mashrDetail("dir.clean")))
-    dir.create(mashrDetail("dir.clean"), recursive=TRUE)  
+  dir.create(mashrDetail("dir.clean"), showWarnings=FALSE, recursive=TRUE)
   write.csv(data, outputName, row.names=FALSE)
   
   data
@@ -185,15 +182,7 @@ manipulateData <- function(studyName, data) {
 #' @return function for manipulating a data.frame
 getManipulateData <- function(studyName) {
   filename <- data.path(studyName, "dataManipulate.R")
-  if (file.exists(filename)) {
-    e <- new.env()
-    source(filename, local=e)
-    if ( !exists("manipulate", envir=e) )
-      stop("Expected function 'manipulate' within dataManipulate.R")
-    match.fun(e$manipulate)
-  } else {
-    identity
-  }
+  getFunctionFromSource("manipulate", filename, identity)
 }
 
 #' Convert data to desired format, changing units, variable names
@@ -409,4 +398,19 @@ columnInfo <- function() {
   list(allowedNames=allowedNames,
        type=type,
        units=units)
+}
+
+getFunctionFromSource <- function(functionName, filename, default=NULL) {
+  e <- new.env()
+  if (file.exists(filename)) {
+    source(filename, local=e)
+  }
+  if (exists(functionName, envir=e)) {
+    match.fun(e[[functionName]])
+  } else if (is.function(default)) {
+    default
+  } else {
+    stop(sprintf("Expected function '%s' within %s",
+                    functionName, filename))
+  }
 }
