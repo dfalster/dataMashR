@@ -12,4 +12,4 @@ Description: A package for merging data from different studies in a transparent
 License: GPL
 Collate:
     'import.R'
-    'conversions.R'
+

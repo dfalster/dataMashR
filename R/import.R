@@ -1,17 +1,19 @@
 
-
 startDataMashR <- function(dir.raw = "data", dir.clean = "output/data", dir.config = "config", 
                            config.files = list(methods = "methodsDefinitions.csv", 
                                                processs = "methodsDefinitions.csv", 
+                                               conversions = "variableConversion.csv",
                                                variables = "variableDefinitions.csv")){
   
   var.def <- read.table(file.path(dir.config, config.files$variables), h=TRUE, stringsAsFactors=FALSE, sep =",")#variable definitions
+  conversions <- read.table(file.path(dir.config, config.files$conversions), h=TRUE, stringsAsFactors=FALSE, sep =",", check.names=FALSE)
 
 
   list(dir.raw   = dir.raw,
        dir.clean = dir.clean,
        dir.config= dir.config,
        config.files = config.files,
+       conversions = conversions,
        var.def=var.def,
   )
 }
@@ -193,16 +195,25 @@ convertData <- function(studyName, data){
   var.match <- readMatchColumns(studyName)
   info <- columnInfo()
   
+  # change varaible name
   data <- rename(data, var.match$var_in, var.match$var_out)
 
+  ## Change units
   for ( col in intersect(names(data), var.match$var_out) ) {
     idx <- match(col, var.match$var_out)[[1]]
     if (info$type[[col]] == "numeric" ) {
       unit.from <- var.match$unit_in[idx]
       unit.to   <- info$units[[col]]
-      data[[col]] <- changeUnits(data[[col]], unit.from, unit.to)
+      if (unit.from != unit.to){
+        i <- mashrDetail("conversions")$unit_in == unit.from & mashrDetail("conversions")$unit_out == unit.to
+        x <- data[[col]]
+        if(sum(i) !=1)
+          stop("incorrect unit matching")
+        data[[col]] <- eval(parse(text=mashrDetail("conversions")$conversion[i]))
+      }
     }
-    
+
+   ## Add methods variable
     method <- var.match$method[idx]
     if ( !is.na(method) )
       data[[paste("method", col, sep="_")]] <- method
