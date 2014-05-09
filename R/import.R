@@ -1,6 +1,6 @@
 .mashrEnv <- new.env()
 
-startDataMashR <- function(dir.raw = "data", dir.clean = "output/data", dir.config = "config", 
+startDataMashR <- function(dir.raw = "data", dir.out = "output", dir.config = "config",
                            config.files = list(conversions = "variableConversion.csv",
                                                variables = "variableDefinitions.csv",
                                                post = "postProcess.R")){
@@ -14,14 +14,12 @@ startDataMashR <- function(dir.raw = "data", dir.clean = "output/data", dir.conf
 
   .mashrEnv$config <-
     list(dir.raw   = dir.raw,
-         dir.clean = dir.clean,
+         dir.out = dir.out,
          dir.config= dir.config,
-         config.files = config.files,
          conversions = conversions,
          var.def=var.def,
          postProcess = postProcess)
 }
-
 
 checkMashrIsSetup<-function(){
   if(!exists("config", .mashrEnv)){
@@ -48,26 +46,32 @@ getStudyNames <-function(){
 #' Adds studies to the central dataset
 #' @description Standardises all folders within one main directory (default=data) and combines them into one single dataset via loadStudy()
 #' @param studyNames Character vector containing study names to be added. The default adds names via getStudyNames()
-#' @param data If provided, will add studies to this dataframe
 #' @param reprocess If TRUE, will reprocess studies even if they already exist in the data directory
 #' @param verbose If TRUE, print messages to screen, good for isolating problems  
 #' @return merged list with three parts: data, reference, contact,
 #'    each is a dataframe with all data combined.
 #' @export
-loadStudies <- function(studyNames=getStudyNames(), data=NULL,
-                        reprocess=FALSE, verbose=FALSE) {
+mashData <- function(studyNames=getStudyNames(), reprocess=TRUE, verbose=FALSE, name="mashup.rds") {
+
+  # run trasnformations for each data directory
   d <- lapply(studyNames, loadStudy, reprocess=reprocess,
               verbose=verbose)
+
+  # combine into single object
   vars <- c("data", "ref", "contact")
   f <- function(v)
     do.call(rbind, lapply(d, "[[", v))
   x <- structure(lapply(vars, f), names=vars)
 
+  # ensure variable types are correct
   x$data <- fixType(x$data)
 
-  x$data <- mashrDetail("postProcess")(x$data)
+  # save to file
+  path <- file.path(mashrDetail("dir.out"),tools::file_path_sans_ext(name))
+  dir.create(path, showWarnings=FALSE, recursive=TRUE)
 
-  x
+  tmp <- lapply(vars, function(v) write.csv(x[[v]], file.path(path, paste0(v,".csv")), row.names=FALSE))
+  saveRDS(x, file.path(mashrDetail("dir.out"), name))
 }
 
 #' Load data from specified studyName
@@ -110,9 +114,7 @@ readDataProcessed <- function(studyName, reprocess=TRUE) {
 processStudy <- function(studyName, verbose=FALSE) {
   
   if (verbose) cat(studyName, " ")
-  
-  outputName <- studyDataFile(studyName)
-  
+
   if (verbose) cat("load data\n")
   data <- readDataRaw(studyName)
   
@@ -132,14 +134,17 @@ processStudy <- function(studyName, verbose=FALSE) {
   if (verbose) cat("import new data \n")
   data <- addNewData(studyName, data)
   
-  if (verbose) cat("write to file\n")
-  # if (verbose) cat("fix type\n")
-  # data <- fixType(data)
 
-  # if (verbose) cat("Post process\n")
-  # data <- mashrDetail("postProcess")(data)
+  if (verbose) cat("fix type\n")
+  data <- fixType(data)
+
+  if (verbose) cat("Post process\n")
+  data <- mashrDetail("postProcess")(data)
   
-  dir.create(mashrDetail("dir.clean"), showWarnings=FALSE, recursive=TRUE)
+
+  if (verbose) cat("write to file\n")
+  outputName <- studyDataFile(studyName)
+  dir.create(dirname(outputName), showWarnings=FALSE, recursive=TRUE)
   write.csv(data, outputName, row.names=FALSE)
   
   data
@@ -336,7 +341,7 @@ fixType <- function(data){
 
 #creates name of file to store processed data
 studyDataFile <- function(studyName) {
-  file.path(mashrDetail("dir.clean"), paste0(studyName, ".csv"))
+  file.path(mashrDetail("dir.out"), "cache", paste0(studyName, ".csv"))
 }
 
 readImport <- function(studyName) {
