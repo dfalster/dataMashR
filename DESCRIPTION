@@ -4,7 +4,7 @@ Title: Mash data transparantly and reproducibly
 Version: 0.0
 Date: 2013-06-03
 Depends:
-    bibtex
+    bibtex, plyr
 Author: Daniel Falster, Remko Duursma, Rich FitzJohn, Diego Barneche
 Maintainer: Daniel Falster <daniel.falster@mq.edu.au>
 Description: A package for merging data from different studies in a transparent

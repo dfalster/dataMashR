@@ -50,13 +50,12 @@ mashData <- function(studyNames = getStudyNames(), reprocess = TRUE, verbose = F
  name = "mashup.rds") {
 
  # run trasnformations for each data directory
- d <- lapply(studyNames, loadStudy, reprocess = reprocess, verbose = verbose)
+ d <- llply(studyNames, loadStudy, reprocess = reprocess, verbose = verbose)
+ names(d) <- studyNames
 
  # combine into single object
- vars <- c("data", "ref", "contact")
- f <- function(v) do.call(rbind, lapply(d, "[[", v))
- x <- structure(lapply(vars, f), names = vars)
-
+ x <- list(data = ldply(d, function(x) x[["data"]]),
+     contact = ldply(d, function(x) x[["contact"]]))
  # ensure variable types are correct
  x$data <- fixType(x$data)
 
@@ -64,8 +63,16 @@ mashData <- function(studyNames = getStudyNames(), reprocess = TRUE, verbose = F
  path <- file.path(mashrDetail("dir.out"), tools::file_path_sans_ext(name))
  dir.create(path, showWarnings = FALSE, recursive = TRUE)
 
- tmp <- lapply(vars, function(v) write.csv(x[[v]], file.path(path, paste0(v, ".csv")),
-  row.names = FALSE))
+ for( v in c("data", "contact"))
+    write.csv(x[[v]], file.path(path, paste0(v, ".csv")),row.names = FALSE)
+
+ #refeences
+ refs <- file.path(path, paste0("refs", ".bib"))
+
+ write.bib(d[[1]]$ref, file=refs, verbose=FALSE)
+ l_ply(d[2:length(d)], function(x) write.bib(x$ref, refs, append=TRUE, verbose=FALSE))
+ x[["ref"]] <- read.bib(refs)
+
  saveRDS(x, file.path(mashrDetail("dir.out"), name))
 }
 
@@ -363,15 +370,7 @@ readReference <- function(studyName) {
  filename <- data.path(studyName, "studyRef.bib")
  myBib <- read.bib(filename)
 
- if (is.null(myBib$doi))
-  myBib$doi <- ""
-
- if (myBib$doi != "")
-  myBib$url <- paste0("http://dx.doi.org/", myBib$doi)
- if (is.null(myBib$url))
-  myBib$url <- ""
-
- data.frame(dataset = studyName, filename, doi = myBib$doi, url = myBib$url, stringsAsFactors = FALSE)
+ myBib
 }
 
 readContact <- function(studyName) {
