@@ -1,27 +1,18 @@
 
 
-# Configuration
-# TODO: test if config files have correct extensions, 
-
 startDataMashR <- function(dir.raw = "data", dir.clean = "output/data", dir.config = "config", 
                            config.files = list(methods = "methodsDefinitions.csv", 
                                                processs = "methodsDefinitions.csv", 
-                                               variables = "variableDefinitions.csv",
-                                               progress = "progress.csv") ){
+                                               variables = "variableDefinitions.csv")){
   
-  var.def   = read.table(file.path(dir.config, config.files$variables), h=TRUE, stringsAsFactors=FALSE, sep =",")#variable definitions
-  met.def   = NA
-  if(!is.na(config.files$methods)) 
-    met.def = read.table(file.path(dir.config, config.files$methods), h=TRUE, stringsAsFactors=FALSE, sep =",")#definition of methods
-  prog      = read.csv(file.path(dir.config, config.files$progress), h=TRUE, stringsAsFactors=FALSE)#project progress
-  
+  var.def <- read.table(file.path(dir.config, config.files$variables), h=TRUE, stringsAsFactors=FALSE, sep =",")#variable definitions
+
+
   list(dir.raw   = dir.raw,
        dir.clean = dir.clean,
        dir.config= dir.config,
        config.files = config.files,
        var.def=var.def,
-       met.def=met.def,
-       prog=prog
   )
 }
 
@@ -47,56 +38,6 @@ data.path <- function(studyName, ...){
 # Get list of studies included in database
 getStudyNames <-function(){  
   dir(mashrDetail("dir.raw"))
-}
-
-#' @export
-projectFiles  <-  function(){
-  tolower(c("data.csv", "dataImportOptions.csv", "dataManipulate.r", "dataMatchColumns.csv", 
-            "dataNew.csv", "studyContact.csv", "studyMetadata.csv", "studyRef.bib"))
-}
-
-#' Identifies new studies within the project directory
-#' @description Returns all studies that still do not contain inital files set up done.
-#' @param studyNames Character vector containing study names to be investigated. 
-#'        The default adds names via \code{getStudyNames()}
-#' @param verbose If TRUE, print messages to screen, good for isolating problems  
-#' @details This function searches for new studies within \code{mashrConfig("dir.raw")} 
-#'          and returns those that were identified as new to the project, i.e.,
-#'          not processed. This output shoulb be further used in \code{makeDataImport} 
-#'          and \code{setUpFiles} to implement initial files. See also \code{projectFiles}.
-#' @return a vector of study names 
-#' @export
-identifyNewStudies <- function(studyNames=getStudyNames(), verbose=TRUE) {
-  files.list <- as.character(unlist(sapply(studyNames, function(x){
-    files    <-  tolower(list.files(paste0(mashrDetail("dir.raw"), "/", x)))
-    if(!all(projectFiles() %in% files)){
-      if(verbose)
-        print(paste0("In ", x, ": initial project setup is incomplete, the file(s) ", 
-                     paste0(projectFiles()[projectFiles() %in% files==FALSE],collapse=", "),
-                     " is (are) missing. Please check functions makeDataImport and setUpFiles"
-        ))
-      return(x)
-    }
-  })))
-  
-  prog        <-  prog  <-  read.csv(file.path(mashrDetail("dir.config"), mashrDetail("config.files")$progress),  header=TRUE, stringsAsFactors=FALSE)
-  newStudies  <-  studyNames[studyNames %in% prog$study == FALSE]
-  
-  if(length(newStudies) > 0){
-    cat("\n adding", newStudies, "to progress.csv \n")
-    if(any(newStudies %in% prog$study)) {
-      prog  <-  prog[prog$study %in% newStudies  == FALSE, ]
-    }
-    progresses  <-  as.numeric(!(newStudies %in% files.list))
-    prog        <-  rbind(prog, data.frame(study=newStudies, 
-                                     progress=progresses, 
-                                     comment="new study", 
-                                     stringsAsFactors=FALSE))
-    prog  <-  prog[order(prog$study),]
-    write.csv(prog, paste0(mashrDetail("dir.config"), "/", mashrDetail("config.files")$progress), row.names=FALSE)  
-    return(newStudies[progresses==0])
-  }
-  
 }
 
 #' Adds studies to the central dataset
@@ -242,11 +183,18 @@ getManipulateData <- function(studyName) {
 #' @param data existing data frame
 #' @return modified data frame
 convertData <- function(studyName, data){
+
+  rename <- function(obj, names.from, names.to) {
+    i <- match(names.from, names(obj))
+    names(obj)[i] <- names.to
+    obj
+  }
+
   var.match <- readMatchColumns(studyName)
   info <- columnInfo()
   
   data <- rename(data, var.match$var_in, var.match$var_out)
-  
+
   for ( col in intersect(names(data), var.match$var_out) ) {
     idx <- match(col, var.match$var_out)[[1]]
     if (info$type[[col]] == "numeric" ) {
@@ -271,6 +219,17 @@ convertData <- function(studyName, data){
 #' @param data data.frame, after being run through convertData
 #' @return data.frame
 addAllColumns <- function(data) {
+
+  #' @description \code{na.vector} constructs a vector with NAs.
+  #' @param type 'character' or 'numeric'.
+  #' @param n Length of vector.
+  na.vector <- function(type, n) {
+  x <- switch(type,
+              character=NA_character_,
+              numeric=NA_real_)
+  rep.int(x, n)
+  }
+
   info     <-  columnInfo()
   missing  <-  setdiff(info$allowedNames, names(data))
   if(length(missing) != 0){
@@ -314,192 +273,25 @@ addNewData <- function(studyName, data) {
 #' Utility function to read/process dataNew.csv for addNewData
 readNewData <- function(studyName) {
   filename <- data.path(studyName, "dataNew.csv")
+
+  import <- NULL
+
   if ( file.exists(filename) ) {
     import <- read.csv(filename, header=TRUE, stringsAsFactors=FALSE,
                        strip.white=TRUE)
     if ( nrow(import) > 0 ) {
       import$lookupVariable[import$lookupVariable == ""] <- NA
-      nameIsOK <- import$newVariable %in% mashrDetail("var.def")$Variable
-      if (any(!nameIsOK)) 
-        stop("Incorrect name in newVariable column of dataNew.csv for ",
-             studyName, "--> ", paste(import$newVariable[!nameIsOK],
-                                      collapse=", "))
     } else {
       import <- NULL
     }
-  } else {
-    import <- NULL
   }
   import
-}
-
-
-## * Functions for creating the import directory structure for new
-## * data.  Not reviewed yet.
-
-#' Create a dataImportOptions.csv for a new study
-#' @param newStudy study folder to add dataImportOptions.csv
-#' @returns writes dataImportOptions.csv to study folder
-#' @export
-makeDataImport  <-  function(newStudy){
-  impo      <-  data.frame(name=c("header","skip"),data.csv=c("TRUE",0),row.names=NULL)
-  filename  <-  paste0(mashrDetail("dir.raw"), "/", newStudy, "/dataImportOptions.csv")
-  if(!file.exists(filename)){
-    write.csv(impo, paste0(mashrDetail("dir.raw"), "/", newStudy, "/dataImportOptions.csv"),row.names=FALSE)
-  }
-}
-
-#' Create the proper set of files in each folder
-#' 
-#' @param newStudy folder where data is stored
-#' @return a dataframe
-#' @export
-#' @keywords misc
-readNewFiles  <-  function(newStudy){
-  # Load raw data from newStudy
-  #
-  # Args: 
-  #   newStudy: folder where data is stored
-  # 
-  # Returns:
-  #   dataframe
-  
-  #import options for data file
-  import <-  read.csv(paste0(mashrDetail("dir.raw"),"/",newStudy,"/dataImportOptions.csv"), 
-                      h=FALSE, row.names=1, stringsAsFactors=FALSE)  
-  
-  #brings in the original .csv
-  raw     <-  read.csv(paste0(mashrDetail("dir.raw"),"/",newStudy,"/",import['name',]), 
-                       h=(import['header',]=="TRUE"), 
-                       skip=as.numeric(import['skip',]), 
-                       stringsAsFactors=FALSE, strip.white=TRUE, check.names=FALSE)
-  raw
-}
-
-##' Sets up files for new study to be added to the database
-##' 
-##' @param newStudy Name of the directory that is to be added
-##' @param quiet If TRUE, don't print messages about progress
-##' @return Nothing; directories are created
-##' @export
-setUpFiles  <-  function(newStudy, quiet=FALSE){
-  prog  <-  read.csv(file.path(mashrDetail("dir.config"), mashrDetail("config.files")$progress),  header=TRUE, stringsAsFactors=FALSE)  
-  if(newStudy %in% prog$study == FALSE)
-    stop(paste0("You first need to add ", newStudy, " to progress.csv via identifyNewStudies()"))
-    
-  prog$progress[prog$study == newStudy]  <-  1
-  prog  <-  prog[order(prog$study),]
-  write.csv(prog, paste0(mashrDetail("dir.config"), "/", mashrDetail("config.files")$progress), row.names=FALSE)  
-  
-  if(!quiet)message("Setting up files for ", newStudy)
-  
-  #creates and writes dataManipulate.R
-  if(!quiet)message("creates dataManipulate.R")
-  filename  <-  paste0(mashrDetail("dir.raw"), "/", newStudy, "/dataManipulate.R")
-  if(!file.exists(filename)){
-    manip     <-  c("manipulate  <-  function(raw){", "\n\traw", "\n}")
-    write(manip, paste0(mashrDetail("dir.raw"),"/",newStudy,"/dataManipulate.R"))
-  }  
-  
-  #creates dataMatchColumns.csv
-  if(!quiet)message("creates dataMatchColumns.csv")
-  filename  <-  paste0(mashrDetail("dir.raw"), "/", newStudy, "/dataMatchColumns.csv")
-  if(!file.exists(filename)){
-    
-    #reads file accounting for dataImportOptions
-    newFile   <-  readNewFiles(newStudy)
-    
-    matchCol  <-  data.frame(var_in=names(newFile), 
-                             method=rep(NA,ncol(newFile)), 
-                             unit_in=rep(NA,ncol(newFile)), 
-                             var_out=rep(NA,ncol(newFile)), 
-                             notes=rep(NA,ncol(newFile)), 
-                             stringsAsFactors=FALSE)
-    write.csv(matchCol, paste0(mashrDetail("dir.raw"),"/",newStudy,"/dataMatchColumns.csv"), row.names=FALSE)
-  }
-  
-  #creates and writes dataNew.csv
-  if(!quiet)message("creates dataNew.csv")
-  filename  <-  paste0(mashrDetail("dir.raw"), "/", newStudy, "/dataNew.csv")
-  if(!file.exists(filename)){
-    datnew  <-  data.frame(lookupVariable="",
-                           lookupValue="",
-                           newVariable="",
-                           newValue="",
-                           source="", 
-                           stringsAsFactors=FALSE)
-    datnew  <-  datnew[-1,]
-    write.csv(datnew, paste0(mashrDetail("dir.raw"),"/",newStudy,"/dataNew.csv"), row.names=FALSE)
-  }
-  
-  #creates and writes studyContact.csv
-  if(!quiet)message("creates studyContact.csv")
-  filename  <-  paste0(mashrDetail("dir.raw"), "/", newStudy, "/studyContact.csv")
-  if(!file.exists(filename)){
-    contact  <-  data.frame(name=NA,
-                            email=NA,
-                            address=NA,
-                            additional.info=NA,
-                            stringsAsFactors=FALSE)
-    write.csv(contact, paste0(mashrDetail("dir.raw"),"/",newStudy,"/studyContact.csv"), row.names=FALSE)
-  }
-  
-  
-  
-  #creates and writes studyMetadata.csv
-  if(!quiet)cat("creates studyMetadata.csv ")
-  filename  <-  paste0(mashrDetail("dir.raw"), "/", newStudy, "/studyMetadata.csv")
-  if(!file.exists(filename)){
-    metadat  <-  data.frame(Topic=c("Sampling strategy", "Leaf area", "Stem cross sectional area", "Height", "Crown area", "Biomass", "traits", "Growth environment", "Other variables"),
-                            Description=c("Please provide a brief description of the sampling strategy used in this paper (up to 4 sentences)", rep("Please provide ...",8)),
-                            stringsAsFactors=FALSE)    
-    write.csv(metadat, paste0(mashrDetail("dir.raw"),"/",newStudy,"/studyMetadata.csv"), row.names=FALSE)
-  }
-  
-  #creates and writes studyRef.bib
-  if(!quiet)cat("creates studyRef.bib ")
-  filename  <-  paste0(mashrDetail("dir.raw"), "/", newStudy, "/studyRef.bib")
-  if(!file.exists(filename)){
-    bibRef  <-  paste0("@article{",newStudy,",",
-                       "\n\ttitle = {Study},",
-                       "\n\tlanguage = {en},",
-                       "\n\turl = {},",
-                       "\n\tdoi = {},",
-                       "\n\tabstract = {},",
-                       "\n\tjournal = {Unpublished},",
-                       "\n\tnumber = {},",
-                       "\n\tauthor = {Missing},",
-                       "\n\tyear = {0000},",
-                       "\n\tpages = {},",
-                       "\n}")
-    write(bibRef, paste0(mashrDetail("dir.raw"),"/",newStudy,"/studyRef.bib"))
-  }
-  
 }
 
 readMatchColumns <- function(studyName) {
   filename <- file.path(mashrDetail("dir.raw"), studyName, "dataMatchColumns.csv")
   var.match <- read.csv(filename, header=TRUE, stringsAsFactors=FALSE,
                         na.strings=c("NA", ""), strip.white=TRUE)
-  
-  nameIsOK <- (var.match$var_out[!is.na(var.match$var_out)] %in%
-                 mashrDetail("var.def")$Variable)
-  if (any(!nameIsOK))
-    
-    stop("Incorrect name in var_out columns of dataMatchColumns.csv for ",
-         studyName, "--> ",
-         paste(var.match$var_out[!is.na(var.match$var_out)][!nameIsOK], collapse=", "))
-  
-  if ( any(is.na(var.match$var_in)) ) {
-    warning("Pruning empty columns from", studyName)
-    var.match <- var.match[!is.na(var.match$var_in),]
-  }
-  
-  if ( any(duplicated(na.omit(var.match$var_out))) ) {
-    dups <- na.omit(unique(var.match$var_out[duplicated(var.match$var_out)]))
-    warning(sprintf("Duplicated output columns in %s: %s",
-                    studyName, paste(dups, collapse=", ")))
-  }
   
   var.match[!is.na(var.match$var_out),]
 }
@@ -508,11 +300,6 @@ readMatchColumns <- function(studyName) {
 #aggregating varnames into "grouping" variable
 ## NOTE: Used in dataManipulate.R
 makeGroups <-function(data, varNames){
-  
-  #if name does not exist stop with error message
-  checkNameExists<-!(varNames %in% names(data))
-  if(any(checkNameExists))
-    stop(paste("Variable ", varNames[checkNameExists], " not found, called in dataManipulate.R"))
   
   apply(cbind(data[,varNames]), 1, function(x)paste(varNames,"=",x,collapse="; "))  
 }
@@ -524,10 +311,8 @@ studyDataFile <- function(studyName) {
 
 readImport <- function(studyName) {
   filename <- file.path(mashrDetail("dir.raw"), studyName, "dataImportOptions.csv")
-  if (!file.exists(filename))
-    stop(sprintf("Import options file does not exist (expected at %s)",
-                 filename))
-  tmp <- read.csv(filename, header=FALSE, row.names=1,
+
+   tmp <- read.csv(filename, header=FALSE, row.names=1,
                   stringsAsFactors=FALSE)
   
   defaults <- list(na.strings="NA")
@@ -543,15 +328,6 @@ readImport <- function(studyName) {
 getContributors<-function(data){  
   data$contact[!duplicated(d$contact$name),]
 }
-
-#' @export
-extractStudy<-function(alldata, study){
-  for(var in c("data", "ref", "contact"))
-    alldata[[var]]<-alldata[[var]][alldata[[var]]$dataset == study,]
-  alldata  
-}
-
-
 
 readReference <- function(studyName) {
   filename <-data.path(studyName, "studyRef.bib")
@@ -575,10 +351,6 @@ readContact <- function(studyName) {
 }
 
 
-
-
-
-## TODO: This might merge somewhat with the definition of var.def.
 columnInfo <- function() {
   allowedNames <-  mashrDetail("var.def")$Variable
   type         <-  mashrDetail("var.def")$Type # variable type: charcater / numeric
@@ -597,50 +369,3 @@ columnInfo <- function() {
        type=type,
        units=units)
 }
-
-
-
-changeVars <-  function(studyNames=getStudyNames(), from, to, path=mashrDetail("dir.raw")){
-  
-  lapply(studyNames, changeVarsInFolder, from=from, to=to, path=path)
-  changeVarCsv(filename="variableDefinitions", column="Variable", from=from, to=to, path="config")
-  
-}
-
-changeVarsInFolder  <-  function(study, from, to, path=mashrDetail("dir.raw")){
-  changeVarCsv(study, from=from, to=to, filename="dataMatchColumns", column="var_out", path=path)
-  changeVarCsv(study, from=from, to=to, filename="dataNew", column="newVariable", path=path)
-  changeVarR(study, from=from, to=to, filename="dataManipulate", path=path)
-}
-
-changeVarCsv  <-  function(study, filename, column, from, to, path=mashrDetail("dir.raw")){
-  if(missing(study)){
-    x  <-  read.csv(paste0(path, "/", filename, ".csv"), h=TRUE, stringsAsFactors=FALSE)
-  } else {
-    x  <-  read.csv(paste0(path, "/", study, "/", filename, ".csv"), h=TRUE, stringsAsFactors=FALSE)
-  }
-  if(length(x[[column]][x[[column]] %in% from]) > 0){
-    x[[column]][x[[column]]==from]  <-  to
-    if(missing(study)){
-      write.csv(x, paste0(path, "/", filename, ".csv"), row.names=FALSE)
-    } else {
-      write.csv(x, paste0(path, "/", study, "/", filename, ".csv"), row.names=FALSE)
-    }
-  }
-}  
-
-changeVarR  <-  function(study, filename, from, to, path=mashrDetail("dir.raw")){  
-  File  <-  paste0(path, "/", study, "/", filename, ".R")
-  
-  from <- paste0('"',from,'"')
-  to <- paste0('"',to,'"')
-  
-  if(file.exists(File)){
-    x     <-  readChar(File, file.info(File)$size)
-    if(length(grep(from, x)) > 0){
-      x  <-  gsub(from, to, x)
-      write(x, File)
-    }          
-  }
-}
-
