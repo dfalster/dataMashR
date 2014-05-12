@@ -59,19 +59,44 @@ mashData <- function(studyNames = getStudyNames(), reprocess = TRUE, verbose = F
  # ensure variable types are correct
  x$data <- fixType(x$data)
 
- # save to file
+ # Path for saving output
  path <- file.path(mashrDetail("dir.out"), tools::file_path_sans_ext(name))
  dir.create(path, showWarnings = FALSE, recursive = TRUE)
 
- for( v in c("data", "contact"))
-    write.csv(x[[v]], file.path(path, paste0(v, ".csv")),row.names = FALSE)
-
- #refeences
- refs <- file.path(path, paste0("refs", ".bib"))
-
+ # compile references
+ refs <- file.path(path, paste0("references", ".bib"))
  write.bib(d[[1]]$ref, file=refs, verbose=FALSE)
  l_ply(d[2:length(d)], function(x) write.bib(x$ref, refs, append=TRUE, verbose=FALSE))
- x[["ref"]] <- read.bib(refs)
+ x[["bib"]] <- read.bib(refs)
+
+ # Summary of references
+ x[["references"]] <- ldply(unclass(x[["bib"]]), function(myBib) {
+       doi <- url <- ""
+       if(!is.null(myBib$doi))
+        doi <- myBib$doi[1]
+       if (doi != "")
+        url <- paste0("http://doi.org/", doi)
+       else if (!is.null(myBib$url))
+        url <- myBib$url[1]
+       data.frame(dataset = attr(myBib,"key"), doi=doi, url=url, citation= "", stringsAsFactors=FALSE)})
+
+ #Extract formatted bibtek citation - NB: would be nice to embed this within above loop but curretnly cant' get it to work because `bibentry` class redefines `[[`. thus need to call `unlass` before passing into ldply. But Once you've done that, can't call `format`
+ for(i in 1:length(x[["bib"]]))
+  suppressWarnings(x[["references"]]$citation[i] <- format(x[["bib"]][[i]],"text"))
+
+ # clean up bib entry
+ find <- c("<.+?>", " , .", ", .","\n", "*", "_", "“",  "”", "..", ",.", ". .")
+ replace <- c("", ".", ".", " ", "", "", "'", "'", ".", ".", ".")
+ fixed <- c(0,1,1,1,1,1,1,1,1,1,1,1,1,1)
+ for(i in 1:length(find))
+  x[["references"]]$citation <- gsub(find[i],replace[i],x[["references"]]$citation, fixed=fixed[i])
+
+ # Data dictionary
+ x[["dictionary"]] <- mashrDetail("var.def")
+
+ # Save to file
+ for( v in c("data", "contact", "dictionary", "references"))
+    write.csv(x[[v]], file.path(path, paste0(v, ".csv")),row.names = FALSE)
 
  saveRDS(x, file.path(mashrDetail("dir.out"), name))
 }
