@@ -363,7 +363,7 @@ readImport <- function(studyName) {
 }
 
 getContributors <- function(data) {
- data$contact[!duplicated(d$contact$name), ]
+ data$contact[!duplicated(data$contact$name), ]
 }
 
 readReference <- function(studyName) {
