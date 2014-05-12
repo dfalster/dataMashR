@@ -370,7 +370,12 @@ readReference <- function(studyName) {
  filename <- data.path(studyName, "studyRef.bib")
  myBib <- read.bib(filename)
 
- myBib
+ # Hack work around to change key in bib entry (bibtex entry redefines '[' and/or '[[' in ways that cause nothing but grief)
+ tmp <- unclass(myBib)
+ attr(tmp[[1]], "key") <- studyName
+ class(tmp) <- "bibentry"
+
+ tmp
 }
 
 readContact <- function(studyName) {
