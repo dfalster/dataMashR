@@ -1,3 +1,4 @@
+##' @import plyr
 .mashrEnv <- new.env()
 
 startDataMashR <- function(dir.raw = "data", dir.out = "output", dir.config = "config",
@@ -46,6 +47,7 @@ getStudyNames <- function() {
 #' @return merged list with three parts: data, reference, contact,
 #'    each is a dataframe with all data combined.
 #' @export
+#' @importFrom bibtex write.bib
 mashData <- function(studyNames = getStudyNames(), reprocess = TRUE, verbose = FALSE,
  name = "mashup.rds") {
 
@@ -391,6 +393,7 @@ getContributors <- function(data) {
  data$contact[!duplicated(data$contact$name), ]
 }
 
+##' @importFrom bibtex read.bib
 readReference <- function(studyName) {
  filename <- data.path(studyName, "studyRef.bib")
  myBib <- read.bib(filename)
