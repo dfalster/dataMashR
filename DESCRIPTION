@@ -5,7 +5,8 @@ Version: 0.0-1
 Date: 2013-06-03
 Imports:
     bibtex,
-    plyr
+    plyr,
+    testthat
 Author: Daniel Falster, Remko Duursma, Rich FitzJohn, Diego Barneche
 Maintainer: Daniel Falster <daniel.falster@mq.edu.au>
 Description: A package for merging data from different studies in a transparent
