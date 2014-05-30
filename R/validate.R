@@ -48,6 +48,10 @@ validate_variableDefinitions.csv <- function(conf_path="config", filePath="varia
     expect_identical(unique(vdf$Type[!is.na(vdf$minValue)]), "numeric")
     expect_identical(unique(vdf$Type[!is.na(vdf$maxValue)]), "numeric")
 
+    #do all numeric variables have a range specified?
+    checkForNAs(vdf$minValue[vdf$Type=='numeric'])
+    checkForNAs(vdf$maxValue[vdf$Type=='numeric'])
+
     #Max Min columns must contain numbers only
     expect_that(is.numeric(vdf$minValue), is_true())
     expect_that(is.numeric(vdf$maxValue), is_true())
@@ -57,9 +61,7 @@ validate_variableDefinitions.csv <- function(conf_path="config", filePath="varia
 
     #allowableValues columns must contain characters only
     expect_that(is.character(vdf$allowableValues), is_true())
-    
-    })
-
+  })
 }
 
 ## All the tests about config/variableDefinitions.csv alone
@@ -94,23 +96,26 @@ validate_variableConversion.csv <- function(conf_path="config", filePath="variab
 }
 
 ## All the tests about data.csv alone
-validate_data.csv <- function(studyName) {
+validate_data.csv <- function(studyName, conf_path="config", filePath="variableDefinitions.csv") {
 
-  test_that("data.csv", {
-    conf_path <- "config"
-    path      <- "data" # for now.
-    full_path <- file.path(path, studyName)
-    expect_that(file.path(full_path, "data.csv"),
+  test_that("data.csv", {    
+    #does it exist?
+    expect_that(dataMashR:::data.path(studyName, "data.csv"),
                 is_present())
+    #so read it
+    dat  <-  dataMashR:::readDataRaw(studyName)
+    
+    #does it contain duplicated colnames?
+    expect_identical(length(unique(names(dat))),
+                length(names(dat)))
 
-    vdf <- read.csv(file.path(conf_path, "variableDefinitions.csv"),
+    vdf <- read.csv(file.path(conf_path, filePath),
                     stringsAsFactors=FALSE,
                     na.strings=c("NA", ""), strip.white=TRUE)
-    dmc <- read.csv(file.path(full_path, "dataMatchColumns.csv"),
+
+    dmc <- read.csv(dataMashR:::data.path(studyName, "dataMatchColumns.csv"),
                     stringsAsFactors=FALSE,
                     na.strings=c("NA", ""), strip.white=TRUE)
-    dat <- read.csv(file.path(path, studyName, "data.csv"),
-                    stringsAsFactors=FALSE)
 
     ## Every name in data.csv must be in the dataMatchColumns.csv$var_in
     expect_that(dat, has_names(dmc$var_in, ignore.order=TRUE))
@@ -132,15 +137,15 @@ has_allowed_classes  <-  function() {
   }
 }
 
-
-fals_within_range <- function() {
-  function() {
-  }
-}
-
 ## Auxiliary functions
 allowed_classes  <-  function(vec) {
   all(vec %in% c("numeric", "character"))
+}
+
+checkForNAs  <-  function(vec) {
+    NAtest <- length(vec) == length(vec[!is.na(vec)])
+    if(!NAtest)
+      warning("vector contains NA values")
 }
 
 ## Test tests
