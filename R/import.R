@@ -23,16 +23,23 @@ checkMashrIsSetup <- function() {
  }
 }
 
+#' Return an item from dataMashR environment
+#' @param detail to fetch
+#' @return object requested
 #' @export
 mashrDetail <- function(detail) {
  checkMashrIsSetup()
  .mashrEnv$config[[detail]]
 }
 
+#' Path to a directory containing raw data
+#' @param studyName name of dataset being requested
+#' @return path to particular dataset
 #' @export
 data.path <- function(studyName, ...) {
  file.path(mashrDetail("dir.raw"), studyName, ...)
 }
+
 
 # Get list of studies included in database
 getStudyNames <- function() {
@@ -87,10 +94,7 @@ mashData <- function(studyNames = getStudyNames(), reprocess = TRUE, verbose = F
   suppressWarnings(x[["references"]]$citation[i] <- format(x[["bib"]][[i]],"text"))
 
  # clean up bib entry
- # TODO: To please R CMD check, this must all be ASCII - replace these
- # with escaped bytecodes that correspond to the correct symbol (smart
- # quotes only).
- find <- c("<.+?>", " , .", ", .","\n", "*", "_", "“",  "”", "..", ",.", ". .")
+ find <- c("<.+?>", " , .", ", .","\n", "*", "_", "\u201C",  "\u201D", "..", ",.", ". .")
  replace <- c("", ".", ".", " ", "", "", "'", "'", ".", ".", ".")
  fixed <- c(0,1,1,1,1,1,1,1,1,1,1,1,1,1)
  for(i in 1:length(find))

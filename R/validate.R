@@ -1,6 +1,8 @@
 ##' @import testthat
 
-##' @export
+#' Validates configuration files
+#' @param silent run silently or print to screen
+#' @export
 validateConfig  <-  function(silent=FALSE) {
   # check if package has correct setup files
   validate_variableDefinitions.csv()
@@ -8,7 +10,10 @@ validateConfig  <-  function(silent=FALSE) {
 
 }
 
-##' @export
+#' Validates data files for particular study
+#' @param studyName name of dircetory to check
+#' @param silent run silently or print to screen
+#' @export
 validateSetUp  <-  function(studyName, silent=FALSE) {
   context(studyName)
   # test all files are present first
