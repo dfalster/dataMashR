@@ -12,6 +12,8 @@ mashData(studyNames = getStudyNames(), reprocess = TRUE, verbose = FALSE,
 \item{reprocess}{If TRUE, will reprocess studies even if they already exist in the data directory}
 
 \item{verbose}{If TRUE, print messages to screen, good for isolating problems}
+
+\item{name}{of output}
 }
 \value{
 merged list with three parts: data, reference, contact,

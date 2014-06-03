@@ -7,6 +7,8 @@ data.path(studyName, ...)
 }
 \arguments{
 \item{studyName}{name of dataset being requested}
+
+\item{...}{additonal arguments passed through to file.path}
 }
 \value{
 path to particular dataset

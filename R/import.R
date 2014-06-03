@@ -34,14 +34,14 @@ mashrDetail <- function(detail) {
 
 #' Path to a directory containing raw data
 #' @param studyName name of dataset being requested
+#' @param ... additonal arguments passed through to file.path
 #' @return path to particular dataset
 #' @export
 data.path <- function(studyName, ...) {
  file.path(mashrDetail("dir.raw"), studyName, ...)
 }
 
-#' Return an item from dataMashR environment
-#' @param detail to fetch
+#' Returns all folders within dataMashR data directory
 #' @return object requested
 #' @export
 getStudyNames <- function() {
@@ -53,6 +53,7 @@ getStudyNames <- function() {
 #' @param studyNames Character vector containing study names to be added. The default adds names via getStudyNames()
 #' @param reprocess If TRUE, will reprocess studies even if they already exist in the data directory
 #' @param verbose If TRUE, print messages to screen, good for isolating problems
+#' @param name of output
 #' @return merged list with three parts: data, reference, contact,
 #'    each is a dataframe with all data combined.
 #' @export
@@ -143,7 +144,7 @@ readDataProcessed <- function(studyName, reprocess = TRUE) {
 
 #' Process a study
 #' @description Processes raw data from studyName, for incorporation into main dataset. Fixes column names, variable names, imports new data, makes standard dataframe.
-#' @param studyName
+#' @param studyName folder where data is stored
 #' @param verbose If TRUE, prints progress messages.
 #' @return Transformed data saved in file output/data/studyName.csv
 processStudy <- function(studyName, verbose = FALSE) {
@@ -234,7 +235,7 @@ getManipulateData <- function(studyName) {
 }
 
 #' Convert data to desired format, changing units, variable names
-#'
+#' @param studyName folder where data is stored
 #' @param data existing data frame
 #' @return modified data frame
 convertData <- function(studyName, data) {
@@ -336,6 +337,7 @@ addNewData <- function(studyName, data) {
 }
 
 #' Utility function to read/process dataNew.csv for addNewData
+#' @param studyName folder where data is stored
 readNewData <- function(studyName) {
  filename <- data.path(studyName, "dataNew.csv")
 

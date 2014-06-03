@@ -1,5 +1,5 @@
 ##' @import testthat
-
+NULL
 
 #' @title Check package configuration files
 #' @param silent run silently (default) or print to screen

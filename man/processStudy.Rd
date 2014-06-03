@@ -6,7 +6,7 @@
 processStudy(studyName, verbose = FALSE)
 }
 \arguments{
-\item{studyName}{}
+\item{studyName}{folder where data is stored}
 
 \item{verbose}{If TRUE, prints progress messages.}
 }

@@ -6,6 +6,8 @@
 convertData(studyName, data)
 }
 \arguments{
+\item{studyName}{folder where data is stored}
+
 \item{data}{existing data frame}
 }
 \value{
