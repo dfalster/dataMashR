@@ -9,7 +9,7 @@ document: roxygen staticdocs
 
 roxygen:
 	@mkdir -p man
-	Rscript -e "library(methods); devtools::document()"
+	Rscript -e "library(methods); devtools::document(clean=TRUE)"
 
 staticdocs:
 	@mkdir -p inst/staticdocs

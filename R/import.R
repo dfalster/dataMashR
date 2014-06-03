@@ -40,8 +40,10 @@ data.path <- function(studyName, ...) {
  file.path(mashrDetail("dir.raw"), studyName, ...)
 }
 
-
-# Get list of studies included in database
+#' Return an item from dataMashR environment
+#' @param detail to fetch
+#' @return object requested
+#' @export
 getStudyNames <- function() {
  dir(mashrDetail("dir.raw"))
 }

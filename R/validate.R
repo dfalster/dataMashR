@@ -1,18 +1,17 @@
 ##' @import testthat
 
-#' Validates configuration files
-#' @param silent run silently or print to screen
+
+#' @title Check package configuration files
+#' @param silent run silently (default) or print to screen
 #' @export
 validateConfig  <-  function(silent=FALSE) {
-  # check if package has correct setup files
   validate_variableDefinitions.csv()
   validate_variableConversion.csv()
-
 }
 
 #' Validates data files for particular study
 #' @param studyName name of dircetory to check
-#' @param silent run silently or print to screen
+#' @param silent run silently (default) or print to screen
 #' @export
 validateSetUp  <-  function(studyName, silent=FALSE) {
   context(studyName)
@@ -26,7 +25,7 @@ validateSetUp  <-  function(studyName, silent=FALSE) {
 ## All the tests about config/variableDefinitions.csv alone
 validate_variableDefinitions.csv <- function(conf_path="config", filePath="variableDefinitions.csv") {
   test_that("variableDefinitions.csv", {
-    
+
     #does it exist?
     expect_that(file.path(conf_path, filePath),
                 is_present())
@@ -41,7 +40,7 @@ validate_variableDefinitions.csv <- function(conf_path="config", filePath="varia
 
     #does it contain the right names?
     expect_that(vdf, has_names(c("Variable","Units","Group","Type","methodsVariable","essential","label","minValue","maxValue","allowableValues","Description"), ignore.order=TRUE))
- 
+
     #every class in vdf$Type must be an allowed class
     expect_that(vdf$Type, has_allowed_classes())
 
@@ -72,7 +71,7 @@ validate_variableDefinitions.csv <- function(conf_path="config", filePath="varia
 ## All the tests about config/variableDefinitions.csv alone
 validate_variableConversion.csv <- function(conf_path="config", filePath="variableConversion.csv") {
   test_that("variableConversion.csv", {
-    
+
     #does it exist?
     expect_that(file.path(conf_path, filePath),
                 is_present())
@@ -86,14 +85,14 @@ validate_variableConversion.csv <- function(conf_path="config", filePath="variab
     if(nrow(vcv) > 0) {
       #does it contain the right names?
       expect_that(vcv, has_names(c("unit_in","unit_out","conversion"), ignore.order=TRUE))
-      
-      #all columns must be characters  
+
+      #all columns must be characters
       for(v in names(vcv))
           expect_that(is.character(vcv[[v]]), is_true())
-      
+
       #are designated functions correct functions?
       for(i in seq_len(nrow(vcv)))
-        expect_that(is.function(eval(parse(text=paste0("as.function(alist(x=,", vcv$conversion[i],"))")))), is_true())    
+        expect_that(is.function(eval(parse(text=paste0("as.function(alist(x=,", vcv$conversion[i],"))")))), is_true())
     }
 
   })
@@ -103,13 +102,13 @@ validate_variableConversion.csv <- function(conf_path="config", filePath="variab
 ## All the tests about data.csv alone
 validate_data.csv <- function(studyName, conf_path="config", filePath="variableDefinitions.csv") {
 
-  test_that("data.csv", {    
+  test_that("data.csv", {
     #does it exist?
     expect_that(data.path(studyName, "data.csv"),
                 is_present())
     #so read it
     dat  <-  readDataRaw(studyName)
-    
+
     #does it contain duplicated colnames?
     expect_identical(length(unique(names(dat))),
                 length(names(dat)))
@@ -152,16 +151,3 @@ checkForNAs  <-  function(vec) {
     if(!NAtest)
       warning("vector contains NA values")
 }
-
-# ## Test tests
-# #has_allowed_classes
-# test_that({
-# #throws error when it should
-# expect_that({ #one wrong entry in vector
-#   expect_that(c("abc", "numeric"), has_allowed_classes())
-#   }, throws_error())
-# expect_that({ #vector only contains wrong entries
-#   expect_that("abc", has_allowed_classes())
-#   }, throws_error())
-# })
-
