@@ -1,7 +1,9 @@
+PACKAGE := $(shell grep '^Package:' DESCRIPTION | sed -E 's/^Package:[[:space:]]+//')
+
 all: install
 
-test: install
-	make -C inst/tests test
+test:
+	make -C tests/regression test
 
 document: roxygen staticdocs
 
@@ -23,9 +25,9 @@ build:
 	R CMD build .
 
 check: build
-	R CMD check --no-manual `ls -1tr dataMashR*gz | tail -n1`
-	@rm -f `ls -1tr dataMashR*gz | tail -n1`
-	@rm -rf dataMashR.Rcheck
+	R CMD check --no-manual `ls -1tr ${PACKAGE}*gz | tail -n1`
+	@rm -f `ls -1tr ${PACKAGE}*gz | tail -n1`
+	@rm -rf ${PACKAGE}.Rcheck
 
 # No real targets!
 .PHONY: all test document install

@@ -87,7 +87,7 @@ validate_variableConversion.csv <- function(conf_path="config", filePath="variab
           expect_that(is.character(vcv[[v]]), is_true())
       
       #are designated functions correct functions?
-      for(i in 1:nrow(vcv))
+      for(i in seq_len(nrow(vcv)))
         expect_that(is.function(eval(parse(text=paste0("as.function(alist(x=,", vcv$conversion[i],"))")))), is_true())    
     }
 
@@ -100,10 +100,10 @@ validate_data.csv <- function(studyName, conf_path="config", filePath="variableD
 
   test_that("data.csv", {    
     #does it exist?
-    expect_that(dataMashR:::data.path(studyName, "data.csv"),
+    expect_that(data.path(studyName, "data.csv"),
                 is_present())
     #so read it
-    dat  <-  dataMashR:::readDataRaw(studyName)
+    dat  <-  readDataRaw(studyName)
     
     #does it contain duplicated colnames?
     expect_identical(length(unique(names(dat))),
@@ -113,7 +113,7 @@ validate_data.csv <- function(studyName, conf_path="config", filePath="variableD
                     stringsAsFactors=FALSE,
                     na.strings=c("NA", ""), strip.white=TRUE)
 
-    dmc <- read.csv(dataMashR:::data.path(studyName, "dataMatchColumns.csv"),
+    dmc <- read.csv(data.path(studyName, "dataMatchColumns.csv"),
                     stringsAsFactors=FALSE,
                     na.strings=c("NA", ""), strip.white=TRUE)
 

@@ -5,9 +5,9 @@ startDataMashR <- function(dir.raw = "data", dir.out = "output", dir.config = "c
  config.files = list(conversions = "variableConversion.csv", variables = "variableDefinitions.csv",
   post = "postProcess.R")) {
 
- var.def <- read.table(file.path(dir.config, config.files$variables), h = TRUE,
+ var.def <- read.table(file.path(dir.config, config.files$variables), header = TRUE,
   stringsAsFactors = FALSE, sep = ",")  #variable definitions
- conversions <- read.table(file.path(dir.config, config.files$conversions), h = TRUE,
+ conversions <- read.table(file.path(dir.config, config.files$conversions), header = TRUE,
   stringsAsFactors = FALSE, sep = ",", check.names = FALSE)
 
  postProcess <- getFunctionFromSource("postProcess", file.path(dir.config, config.files$post),
@@ -87,6 +87,9 @@ mashData <- function(studyNames = getStudyNames(), reprocess = TRUE, verbose = F
   suppressWarnings(x[["references"]]$citation[i] <- format(x[["bib"]][[i]],"text"))
 
  # clean up bib entry
+ # TODO: To please R CMD check, this must all be ASCII - replace these
+ # with escaped bytecodes that correspond to the correct symbol (smart
+ # quotes only).
  find <- c("<.+?>", " , .", ", .","\n", "*", "_", "“",  "”", "..", ",.", ". .")
  replace <- c("", ".", ".", " ", "", "", "'", "'", ".", ".", ".")
  fixed <- c(0,1,1,1,1,1,1,1,1,1,1,1,1,1)
