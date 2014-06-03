@@ -148,14 +148,15 @@ checkForNAs  <-  function(vec) {
       warning("vector contains NA values")
 }
 
-## Test tests
-#has_allowed_classes
-test_that({
-#throws error when it should
-expect_that({ #one wrong entry in vector
-  expect_that(c("abc", "numeric"), has_allowed_classes())
-  }, throws_error())
-expect_that({ #vector only contains wrong entries
-  expect_that("abc", has_allowed_classes())
-  }, throws_error())
-})
+# ## Test tests
+# #has_allowed_classes
+# test_that({
+# #throws error when it should
+# expect_that({ #one wrong entry in vector
+#   expect_that(c("abc", "numeric"), has_allowed_classes())
+#   }, throws_error())
+# expect_that({ #vector only contains wrong entries
+#   expect_that("abc", has_allowed_classes())
+#   }, throws_error())
+# })
+
