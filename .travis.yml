@@ -14,10 +14,9 @@ install:
     - ./travis-tool.sh install_deps
 
 # We have to reinstall to use the package
-script: 
+script:
     - ./travis-tool.sh run_tests
-    - make install
-    - make test
+    - make install test
 
 after_failure:
   - ./travis-tool.sh dump_logs
