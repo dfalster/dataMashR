@@ -103,6 +103,11 @@ mashData <- function(studyNames = getStudyNames(), reprocess = TRUE, verbose = F
  for(i in 1:length(find))
   x[["references"]]$citation <- gsub(find[i],replace[i],x[["references"]]$citation, fixed=fixed[i])
 
+ # Unpublished studies should render as 'Jones XY, Jones QX, unpublished'
+ unpub <- grep("0000", x[["references"]]$citation)
+ citunpub <- function(x)paste0(paste0(x$author, collapse=", "),", unpublished.")
+ x[["references"]]$citation[unpub] <- sapply(x[["bib"]][unpub], citunpub)
+ 
  # Data dictionary
  x[["dictionary"]] <- mashrDetail("var.def")
 
