@@ -54,69 +54,49 @@ getStudyNames <- function() {
 #' @param reprocess If TRUE, will reprocess studies even if they already exist in the data directory
 #' @param verbose If TRUE, print messages to screen, good for isolating problems
 #' @param name of output
-#' @return merged list with three parts: data, reference, contact,
+#' @return merged list with three parts: data, references, contacts,
 #'    each is a dataframe with all data combined.
 #' @export
 #' @importFrom bibtex write.bib
 mashData <- function(studyNames = getStudyNames(), reprocess = TRUE, verbose = FALSE,
  name = "mashup.rds") {
 
- # run trasnformations for each data directory
+ # Path for saving output
+ path <- file.path(mashrDetail("dir.out"), tools::file_path_sans_ext(name))
+ dir.create(path, showWarnings = FALSE, recursive = TRUE)
+
+ # run tranSformations for each data directory
  d <- llply(studyNames, loadStudy, reprocess = reprocess, verbose = verbose)
  names(d) <- studyNames
 
  # combine into single object
  x <- list(data = ldply(d, function(x) x[["data"]]),
      methods = ldply(d, function(x) x[["methods"]]),
-     contact = ldply(d, function(x) x[["contact"]]))
+     contacts = ldply(d, function(x) x[["contacts"]]),
+     references = ldply(d, function(x) x[["references"]])
+     )
+
+# ply adds column ".id -> change to studyName
+for(v in c("data", "methods", "contacts", "references"))
+ x[[v]] <- renameColoumn(x[[v]], ".id", "studyName")
+
+ # compile bib references into single file
+ refs <- file.path(path, paste0("references", ".bib"))
+ write.bib(d[[1]]$bibtex, file=refs, verbose=FALSE)
+ l_ply(d[2:length(d)], function(x) write.bib(x$bibtex, refs, append=TRUE, verbose=FALSE))
+ x[["bibtex"]] <- read.bib(refs)
+
 
  # ensure variable types are correct
  x$data <- fixType(x$data)
  for (v in names(x$methods))
     x$methods[[v]] <- as.character(x$methods[[v]])
 
- # Path for saving output
- path <- file.path(mashrDetail("dir.out"), tools::file_path_sans_ext(name))
- dir.create(path, showWarnings = FALSE, recursive = TRUE)
-
- # compile references
- refs <- file.path(path, paste0("references", ".bib"))
- write.bib(d[[1]]$ref, file=refs, verbose=FALSE)
- l_ply(d[2:length(d)], function(x) write.bib(x$ref, refs, append=TRUE, verbose=FALSE))
- x[["bib"]] <- read.bib(refs)
-
- # Summary of references
- x[["references"]] <- ldply(unclass(x[["bib"]]), function(myBib) {
-       doi <- url <- ""
-       if(!is.null(myBib$doi))
-        doi <- myBib$doi[1]
-       if (doi != "")
-        url <- paste0("http://doi.org/", doi)
-       else if (!is.null(myBib$url))
-        url <- myBib$url[1]
-       data.frame(dataset = attr(myBib,"key"), doi=doi, url=url, citation= "", stringsAsFactors=FALSE)})
-
- #Extract formatted bibtek citation - NB: would be nice to embed this within above loop but curretnly cant' get it to work because `bibentry` class redefines `[[`. thus need to call `unlass` before passing into ldply. But Once you've done that, can't call `format`
- for(i in 1:length(x[["bib"]]))
-  suppressWarnings(x[["references"]]$citation[i] <- format(x[["bib"]][[i]],"text"))
-
- # clean up bib entry
- find <- c("<.+?>", " , .", ", .","\n", "*", "_", "\u201C",  "\u201D", "..", ",.", ". .")
- replace <- c("", ".", ".", " ", "", "", "'", "'", ".", ".", ".")
- fixed <- c(0,1,1,1,1,1,1,1,1,1,1,1,1,1)
- for(i in 1:length(find))
-  x[["references"]]$citation <- gsub(find[i],replace[i],x[["references"]]$citation, fixed=fixed[i])
-
- # Unpublished studies should render as 'Jones XY, Jones QX, unpublished'
- unpub <- grep("0000", x[["references"]]$citation)
- citunpub <- function(x)paste0(paste0(x$author, collapse=", "),", unpublished.")
- x[["references"]]$citation[unpub] <- sapply(x[["bib"]][unpub], citunpub)
-
  # Data dictionary
  x[["dictionary"]] <- mashrDetail("var.def")
 
  # Save to file
- for( v in c("data", "methods", "contact", "dictionary", "references"))
+ for( v in c("data", "methods", "contacts", "dictionary", "references"))
     write.csv(x[[v]], file.path(path, paste0(v, ".csv")),row.names = FALSE)
 
  saveRDS(x, file.path(mashrDetail("dir.out"), name))
@@ -135,8 +115,14 @@ loadStudy <- function(studyName, reprocess = FALSE, verbose = FALSE) {
  if (verbose)
   cat(studyName, " ")
 
- list(data = readDataProcessed(studyName, reprocess), methods = readMethods(studyName), ref = readReference(studyName),
-  contact = readContact(studyName))
+bibtex <- readReference(studyName)
+
+ list(data = readDataProcessed(studyName, reprocess),
+      methods = readMethods(studyName),
+      bibtex = bibtex,
+      contacts = readContact(studyName),
+      references = getCitation(bibtex)
+      )
 }
 
 #' Reads processed and standardised dataset
@@ -243,23 +229,23 @@ getManipulateData <- function(studyName) {
  getFunctionFromSource("manipulate", filename, identity)
 }
 
+renameColoumn <- function(obj, names.from, names.to) {
+  i <- match(names.from, names(obj))
+  names(obj)[i] <- names.to
+  obj
+ }
+
 #' Convert data to desired format, changing units, variable names
 #' @param studyName folder where data is stored
 #' @param data existing data frame
 #' @return modified data frame
 convertData <- function(studyName, data) {
 
- rename <- function(obj, names.from, names.to) {
-  i <- match(names.from, names(obj))
-  names(obj)[i] <- names.to
-  obj
- }
-
  var.match <- readMatchColumns(studyName)
  info <- columnInfo()
 
  # change varaible name
- data <- rename(data, var.match$var_in, var.match$var_out)
+ data <- renameColoumn(data, var.match$var_in, var.match$var_out)
 
  ## Change units
  for (col in intersect(names(data), var.match$var_out)) {
@@ -420,6 +406,28 @@ readReference <- function(studyName) {
  tmp
 }
 
+getCitation <- function(myBib){
+  doi <- url <- ""
+  if (!is.null(myBib$doi))
+    doi <- myBib$doi[1]
+  if (doi != ""){
+     url <- paste0("http://doi.org/", doi)
+  } else if (!is.null(myBib$url)) {
+      url <- myBib$url[1]
+  }
+  citation <- format(myBib,"text")
+
+  # clean up bib entry - establish arrays to pass into gsub
+  find <- c("<URL.+>", "<.+?>", " , .", ", .","\n", "*", "_", "\u201C",  "\u201D", "..", ",.", ". .", "'''.'", "''.")
+  replace <- c("","", ".", ".", " ", "", "", "'", "'", ".", ".", ".", "", "")
+  fixed <- rep(1, length(find))
+  fixed[c(1,2)] <- 0
+  for(i in 1:length(find))
+    citation <- gsub(find[i],replace[i], citation, fixed=fixed[i])
+
+  data.frame(doi=doi, url=url, citation=citation, stringsAsFactors=FALSE)
+}
+
 readMethods <- function(studyName) {
 
   vars <- mashrDetail("var.def")$Variable[mashrDetail("var.def")$methodsVariable]
@@ -436,8 +444,8 @@ readMethods <- function(studyName) {
 readContact <- function(studyName) {
  filename <- data.path(studyName, "studyContact.csv")
 
- contact <- read.csv(filename, header = TRUE, stringsAsFactors = FALSE, strip.white = TRUE)
- data.frame(dataset = studyName, contact, filename, stringsAsFactors = FALSE)
+ contacts <- read.csv(filename, header = TRUE, stringsAsFactors = FALSE, strip.white = TRUE)
+ data.frame(contacts, stringsAsFactors = FALSE)
 }
 
 
