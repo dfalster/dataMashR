@@ -431,12 +431,15 @@ getCitation <- function(myBib){
 readMethods <- function(studyName) {
 
   vars <- mashrDetail("var.def")$Variable[mashrDetail("var.def")$methodsVariable]
-  var.match <- readMatchColumns(studyName)
-  methods <- data.frame(t(var.match$method[match(vars, var.match$var_out)]), stringsAsFactors = FALSE)
+
+  # make data frame with all variables requiring methods
+  methods <- data.frame(t(rep("", length(vars))), stringsAsFactors = FALSE)
   names(methods) <- vars
 
-  for (v in vars)
-    methods[[v]] <- as.character(methods[[v]])
+  # fill with data from study
+  var.match <- readMatchColumns(studyName)
+  for(v in var.match$var_out[var.match$var_out%in% vars])
+    methods[1, v] <- var.match[v==var.match$var_out, "method"]
 
   methods
 }
