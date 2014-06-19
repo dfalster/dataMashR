@@ -1,5 +1,4 @@
 Variable,Units,Type,methodsVariable,essential,label,minValue,maxValue,allowableValues,Description
-dataset,-,character,FALSE,TRUE,dataset,,,,first author and year of relevant paper e.g. Falster2012
 location,-,character,FALSE,TRUE,location,,,,name of location where sampled
 latitude,deg,character,FALSE,TRUE,latitude,-90,90,,latitude of location where sampled (-90 to 90 deg South to North)
 longitude,deg,character,FALSE,TRUE,longitude,-180,180,,longitude of location where sampled (-180 to 180 West to East)
