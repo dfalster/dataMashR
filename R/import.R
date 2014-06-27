@@ -61,11 +61,14 @@ getStudyNames <- function() {
 mashData <- function(studyNames = getStudyNames(), reprocess = TRUE, verbose = FALSE,
  name = "mashup.rds") {
 
+ if (verbose)
+  message("Building ", name)
+
  # Path for saving output
  path <- file.path(mashrDetail("dir.out"), tools::file_path_sans_ext(name))
  dir.create(path, showWarnings = FALSE, recursive = TRUE)
 
- # run tranSformations for each data directory
+ # run transformations for each data directory
  d <- llply(studyNames, loadStudy, reprocess = reprocess, verbose = verbose)
  names(d) <- studyNames
 
@@ -85,7 +88,6 @@ for(v in c("data", "methods", "contacts", "references"))
  write.bib(d[[1]]$bibtex, file=refs, verbose=FALSE)
  l_ply(d[2:length(d)], function(x) write.bib(x$bibtex, refs, append=TRUE, verbose=FALSE))
  x[["bibtex"]] <- read.bib(refs)
-
 
  # ensure variable types are correct
  x$data <- fixType(x$data)
@@ -111,13 +113,9 @@ for(v in c("data", "methods", "contacts", "references"))
 #' @export
 loadStudy <- function(studyName, reprocess = FALSE, verbose = FALSE) {
 
- # Replace cat() with message(), also drop newlines
- if (verbose)
-  cat(studyName, " ")
+  bibtex <- readReference(studyName)
 
-bibtex <- readReference(studyName)
-
- list(data = readDataProcessed(studyName, reprocess),
+  list(data = readDataProcessed(studyName, reprocess, verbose=verbose),
       methods = readMethods(studyName),
       bibtex = bibtex,
       contacts = readContact(studyName),
@@ -131,10 +129,10 @@ bibtex <- readReference(studyName)
 #' @param reprocess force data to be reprocessed
 #' @return standardised data.frame
 #' @export
-readDataProcessed <- function(studyName, reprocess = TRUE) {
+readDataProcessed <- function(studyName, reprocess = TRUE, ...) {
  filename <- studyDataFile(studyName)
  if (reprocess || !file.exists(filename))
-  processStudy(studyName) else read.csv(filename, header = TRUE, stringsAsFactors = FALSE)
+  processStudy(studyName, ...) else read.csv(filename, header = TRUE, stringsAsFactors = FALSE)
 }
 
 #' Process a study
@@ -145,44 +143,43 @@ readDataProcessed <- function(studyName, reprocess = TRUE) {
 processStudy <- function(studyName, verbose = FALSE) {
 
  if (verbose)
-  cat(studyName, " ")
+  message(studyName)
 
  if (verbose)
-  cat("load data\n")
+  message("   - load data")
  data <- readDataRaw(studyName)
 
  if (verbose)
-  cat("manipulate data\n")
+  message("   - manipulate data")
  data <- manipulateData(studyName, data)
-
- data$dataset <- studyName
 
  # convert units and variable names
  if (verbose)
-  cat("convert units\n")
+  message("   - convert units")
  data <- convertData(studyName, data)
 
  # Remove / add columns to mirror those in final database
  if (verbose)
-  cat("add/remove columns\n")
+  message("   - add/remove columns")
  data <- addAllColumns(data)
 
  if (verbose)
-  cat("import new data \n")
+  message("   - import new data")
  data <- addNewData(studyName, data)
 
 
  if (verbose)
-  cat("fix type\n")
+  message("   - fix type")
  data <- fixType(data)
 
  if (verbose)
-  cat("Post process\n")
+  message("   - post process")
  data <- mashrDetail("postProcess")(data)
 
 
  if (verbose)
-  cat("write to file\n")
+  message("   - write to file")
+
  outputName <- studyDataFile(studyName)
  dir.create(dirname(outputName), showWarnings = FALSE, recursive = TRUE)
  write.csv(data, outputName, row.names = FALSE)
