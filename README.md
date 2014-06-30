@@ -5,17 +5,26 @@ dataMashR
 
 Daniel Falster, Remko Duursma, Rich FitzJohn, Diego Barneche
 
-An R package for merging data from different studies in a transparent and reproducible fashion
-
-For `dataMashR` developers:
-* Manual pages are made with roxygen2. In Rstudio, make sure to set up automated
-  roxygen compilation under `Build\Configure build tools...\Configure`.
-* Do NOT edit the Rd files in /man manually. Ever.
+An R package for merging data from different studies in a transparent and reproducible fashion.
 
 **WARNING:** Please note, this package is currently under active development. If you decide to use it, please be aware that the package structure is unstable, so future changes may break your scripts.
 
-To build database type
+## Installation
+
+Use the [devtools](http://cran.r-project.org/web/packages/devtools/index.html) package:
 
 ```
-mashData()
+install.packages("devtools")
+devtools::install_github("dataMashR", "dfalster")
+library(dataMashR)
+```
+
+## Documentation
+
+Reference documentation is available here [here](http://dfalster.github.io/dataMashR) (generated with [staticdocs](https://github.com/hadley/staticdocs)). 
+
+Once you have specified your configuration files, you can build database using
+
+```
+mashData(verbose=TRUE)
 ```
