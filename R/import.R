@@ -159,7 +159,6 @@ processStudy <- function(studyName, verbose = FALSE) {
         message("   - import new data")
     data <- addNewData(studyName, data)
 
-
     if (verbose)
         message("   - fix type")
     data <- fixType(data)
@@ -168,10 +167,8 @@ processStudy <- function(studyName, verbose = FALSE) {
         message("   - post process")
     data <- mashrDetail("postProcess")(data)
 
-
     if (verbose)
         message("   - write to file")
-
     outputName <- studyDataFile(studyName)
     dir.create(dirname(outputName), showWarnings = FALSE, recursive = TRUE)
     write.csv(data, outputName, row.names = FALSE)
@@ -231,6 +228,8 @@ renameColoumn <- function(obj, names.from, names.to) {
 convertData <- function(studyName, data) {
 
     var.match <- readMatchColumns(studyName)
+    var.match <- var.match[!is.na(var.match$var_out), ]
+
     info <- columnInfo()
 
     # change varaible name
@@ -337,7 +336,7 @@ readMatchColumns <- function(studyName) {
     var.match <- read.csv(filename, header = TRUE, stringsAsFactors = FALSE, na.strings = c("NA",
         ""), strip.white = TRUE)
 
-    var.match[!is.na(var.match$var_out), ]
+    var.match
 }
 
 # Paste together list of varNames and their values, used for aggregating varnames
@@ -350,9 +349,9 @@ makeGroups <- function(data, varNames) {
 ## Ensures variables have correct type
 fixType <- function(data) {
     cfg <- mashrDetail("var.def")
-    for (i in seq_along(cfg$Variable)) {
-        v <- cfg$Variable[i]
-        typeFun <- switch(cfg$Type[i], numeric = as.numeric, character = as.character)
+    for (i in seq_along(cfg$variable)) {
+        v <- cfg$variable[i]
+        typeFun <- switch(cfg$type[i], numeric = as.numeric, character = as.character)
         data[, v] <- typeFun(data[, v])
     }
     data
@@ -419,7 +418,7 @@ getCitation <- function(myBib) {
 
 readMethods <- function(studyName) {
 
-    vars <- mashrDetail("var.def")$Variable[mashrDetail("var.def")$methodsVariable]
+    vars <- mashrDetail("var.def")$variable[mashrDetail("var.def")$methods]
 
     # make data frame with all variables requiring methods
     methods <- data.frame(t(rep("", length(vars))), stringsAsFactors = FALSE)
@@ -427,8 +426,10 @@ readMethods <- function(studyName) {
 
     # fill with data from study
     var.match <- readMatchColumns(studyName)
-    for (v in var.match$var_out[var.match$var_out %in% vars]) methods[1, v] <- var.match[v ==
-        var.match$var_out, "method"]
+    var.match <- var.match[!is.na(var.match$var_out), ]
+
+    for (v in var.match$var_out[var.match$var_out %in% vars])
+        methods[1, v] <- var.match[v == var.match$var_out, "method"]
 
     methods
 }
@@ -442,11 +443,11 @@ readContact <- function(studyName) {
 
 
 columnInfo <- function() {
-    allowedNames <- mashrDetail("var.def")$Variable
-    type <- mashrDetail("var.def")$Type  # variable type: charcater / numeric
+    allowedNames <- mashrDetail("var.def")$variable
+    type <- mashrDetail("var.def")$type  # variable type: charcater / numeric
     names(type) <- allowedNames
 
-    units <- structure(mashrDetail("var.def")$Units, names = mashrDetail("var.def")$Variable)
+    units <- structure(mashrDetail("var.def")$units, names = mashrDetail("var.def")$variable)
     list(allowedNames = allowedNames, type = type, units = units)
 }
 

@@ -5,5 +5,6 @@ rebuild <- function() {
   if (ok != 0) {
     stop("Running dataMashR failed")
   }
+  TRUE
 }
 
