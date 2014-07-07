@@ -13,7 +13,7 @@ for(d in dir("data"))
 	dataMashR::validateStudy(d, "config")
 
 
-context("Build tests")
+context("Build")
 
 setwd("..")
 
@@ -21,7 +21,7 @@ test_that("rebuild", {
   expect_that(rebuild(), is_true())
 })
 
-context("Regression tests\n")
+context("Regression tests")
 
 ref <- readRDS("example/baad_ref.rds")
 baad <- readRDS("example/output/baad.rds")
