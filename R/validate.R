@@ -26,7 +26,6 @@ validateStudy <- function(studyName, ...) {
 ## All the tests about config/variableDefinitions.csv alone
 validate_variableDefinitions.csv <- function(conf_path = "config", filePath = "variableDefinitions.csv") {
     test_that(file.path(conf_path,"variableDefinitions.csv"), {
-
         # does it exist?
         expect_that(file.path(conf_path, filePath), is_present())
 
@@ -39,7 +38,7 @@ validate_variableDefinitions.csv <- function(conf_path = "config", filePath = "v
 
         # does it contain the right names?
         essential <- c("variable", "units", "type", "methods","minValue","maxValue")
-        expect_that(vdf[,essential], has_names(essential,ignore.order = TRUE))
+        expect_that(essential, is_in(names(vdf)))
 
         # every class in vdf$type must be an allowed class
         expect_that(vdf$type, has_allowed_classes())
@@ -52,18 +51,16 @@ validate_variableDefinitions.csv <- function(conf_path = "config", filePath = "v
         expect_identical(unique(vdf$type[!is.na(vdf$maxValue)]), "numeric")
 
         # do all numeric variables have a range specified?
-        checkForNAs(vdf$minValue[vdf$type == "numeric"])
+        checkForNAs(vdf$minValue[vdf$type == "numeric"])  #TODO - error message form this test is completely unhelpful
         checkForNAs(vdf$maxValue[vdf$type == "numeric"])
 
         # Max Min columns must contain numbers only
         expect_that(is.numeric(vdf$minValue), is_true())
         expect_that(is.numeric(vdf$maxValue), is_true())
 
-        # are allowableValues values specified for character variables only?
-        expect_identical(unique(vdf$type[!is.na(vdf$allowableValues)]), "character")
+        # # are allowableValues values specified for character variables only?
+        # expect_identical(unique(vdf$type[!is.na(vdf$allowableValues)]), "character")  # TODO This test not very helpful? better error message
 
-        # allowableValues columns must contain characters only
-        expect_that(is.character(vdf$allowableValues), is_true())
     })
 }
 
@@ -102,6 +99,8 @@ validate_data.csv <- function(studyName, conf_path = "config", filePath = "varia
         expect_that(data.path(studyName, "data.csv"), is_present())
         # so read it
         dat <- readDataRaw(studyName)
+
+        # TODO: check numeric data has right type, by implication this checks whether na.strings defined correctly in dataImportOptions - when this it isn't get errors in fixType function
 
         # does it contain duplicated colnames?
         expect_identical(length(unique(names(dat))), length(names(dat)))

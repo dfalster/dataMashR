@@ -318,16 +318,9 @@ addNewData <- function(studyName, data) {
 readNewData <- function(studyName) {
     filename <- data.path(studyName, "dataNew.csv")
 
-    import <- NULL
-
-    if (file.exists(filename)) {
-        import <- read.csv(filename, header = TRUE, stringsAsFactors = FALSE, strip.white = TRUE)
-        if (nrow(import) > 0) {
-            import$lookupVariable[import$lookupVariable == ""] <- NA
-        } else {
-            import <- NULL
-        }
-    }
+    import <- read.csv(filename, header = TRUE, stringsAsFactors = FALSE, strip.white = TRUE)
+    if (nrow(import) > 0)
+        import$lookupVariable[import$lookupVariable == ""] <- NA
     import
 }
 
