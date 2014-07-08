@@ -278,9 +278,9 @@ addAllColumns <- function(data) {
             stringsAsFactors = FALSE)
         data <- cbind(data[, names(data) %in% info$allowedNames], missing.df)
     } else {
-        data <- data[, names(data) %in% info$allowedNames]
+        data <- data[, names(data) %in% info$allowedNames, drop=FALSE]
     }
-    data[, info$allowedNames]
+    data[, info$allowedNames, drop=FALSE]
 }
 
 #' Modifies data by adding new values from table studyName/dataNew.csv
