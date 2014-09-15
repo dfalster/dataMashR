@@ -242,16 +242,18 @@ convertData <- function(studyName, data) {
             unit.from <- var.match$unit_in[idx]
             unit.to <- info$units[[col]]
             if (unit.from != unit.to) {
-                i <- mashrDetail("conversions")$unit_in == unit.from & mashrDetail("conversions")$unit_out ==
-                  unit.to
                 x <- data[[col]]
-                if (sum(i) != 1)
-                  stop("incorrect unit matching")
-                data[[col]] <- eval(parse(text = mashrDetail("conversions")$conversion[i]))
+                data[[col]] <- eval(parse(text = getUnitConversion(unit.from, unit.to)))
             }
         }
     }
     data
+}
+
+getUnitConversion <- function(from, to){
+    i <- mashrDetail("conversions")$unit_in == from &
+            mashrDetail("conversions")$unit_out == to
+    mashrDetail("conversions")$conversion[i]
 }
 
 #' Standardise data columns to match standard template.

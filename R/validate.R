@@ -136,6 +136,27 @@ validate_dataMatchColumns.csv <- function(studyName, conf_path = "config", fileP
 
         # Every name in dataMatchColumns.csv$var_out muts be in variable definitions
         expect_that(dataMatchColumns$var_out[!is.na(dataMatchColumns$var_out)], is_in(vdf$variable))
+
+        # Check all unit conversions present
+        dataMatchColumns <- dataMatchColumns[!is.na(dataMatchColumns$var_out), ]
+        # change varaible name
+        data <- renameColoumn(data, dataMatchColumns$var_in, dataMatchColumns$var_out)
+        # Change units
+        # TODO: reduce horrible duplication of code from convertData function
+        info <- columnInfo()
+        for (col in intersect(names(data), dataMatchColumns$var_out)) {
+            idx <- match(col, dataMatchColumns$var_out)[[1]]
+            if (info$type[[col]] == "numeric") {
+                unit.from <- dataMatchColumns$unit_in[idx]
+                unit.to <- info$units[[col]]
+                if (unit.from != unit.to) {
+                    expect_that(
+                        length(getUnitConversion(unit.from, unit.to)),
+                        equals(1),
+                        info=sprintf("Incorrect conversion from %s to %s", unit.from, unit.to))
+                }
+            }
+        }
     })
 }
 
