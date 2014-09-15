@@ -86,6 +86,9 @@ validate_variableConversion.csv <- function(conf_path = "config", filePath = "va
             # are designated functions correct functions?
             for (i in seq_len(nrow(vcv))) expect_that(is.function(eval(parse(text = paste0("as.function(alist(x=,",
                 vcv$conversion[i], "))")))), is_true())
+
+            # no duplicates
+            expect_that(paste(vcv[["unit_in"]], "=>", vcv[["unit_out"]]), is_unique())
         }
     })
 
@@ -134,7 +137,7 @@ validate_dataMatchColumns.csv <- function(studyName, conf_path = "config", fileP
         vdf <- read.csv(file.path(conf_path, filePath), stringsAsFactors = FALSE,
             na.strings = c("NA", ""), strip.white = TRUE)
 
-        # Every name in dataMatchColumns.csv$var_out muts be in variable definitions
+        # Every name in dataMatchColumns.csv$var_out is in variable definitions
         expect_that(dataMatchColumns$var_out[!is.na(dataMatchColumns$var_out)], is_in(vdf$variable))
 
         # Check all unit conversions present
@@ -210,6 +213,15 @@ is_present <- function() {
     function(filename) {
         expectation(file.exists(filename), sprintf("File %s was not found", filename))
     }
+}
+
+
+is_unique <- function() {
+    function(x) {
+        i <- duplicated(x)
+        expectation(!any(i), paste0("duplicated variable conversions: ",
+                paste0(x[i], collapse = ", ")))
+        }
 }
 
 is_in <- function(expected) {
