@@ -142,7 +142,7 @@ validate_dataMatchColumns.csv <- function(studyName, conf_path = "config", fileP
 
         # Check all unit conversions present
         dataMatchColumns <- dataMatchColumns[!is.na(dataMatchColumns$var_out), ]
-        # change varaible name
+        # change variable name
         data <- renameColoumn(data, dataMatchColumns$var_in, dataMatchColumns$var_out)
         # Change units
         # TODO: reduce horrible duplication of code from convertData function
@@ -152,7 +152,9 @@ validate_dataMatchColumns.csv <- function(studyName, conf_path = "config", fileP
             if (info$type[[col]] == "numeric") {
                 unit.from <- dataMatchColumns$unit_in[idx]
                 unit.to <- info$units[[col]]
-                if (unit.from != unit.to) {
+                expect_that(unit.from, is_not_na(), info=sprintf("NA in unit_from for %s", col))
+                expect_that(unit.to, is_not_na(), info=sprintf("NA in unit_to for %s", col))
+                if (!is.na(unit.from) & !is.na(unit.to) & unit.from != unit.to) {
                     expect_that(
                         length(getUnitConversion(unit.from, unit.to)),
                         equals(1),
@@ -235,6 +237,12 @@ is_in <- function(expected) {
 has_allowed_classes <- function() {
     function(vec) {
         expectation(allowed_classes(vec), sprintf("variableDefinitions.csv contains classes not allowed in this package"))
+    }
+}
+
+is_not_na <- function() {
+    function(x) {
+        expectation(!is.na(x), sprintf("NA present"))
     }
 }
 
