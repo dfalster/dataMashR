@@ -47,8 +47,11 @@ validate_variableDefinitions.csv <- function(conf_path = "config", filePath = "v
         expect_that(is.logical(vdf$methods), is_true())
 
         # are Max Min values specified for numeric variables only?
-        expect_identical(unique(vdf$type[!is.na(vdf$minValue)]), "numeric")
-        expect_identical(unique(vdf$type[!is.na(vdf$maxValue)]), "numeric")
+        for(v in c("minValue", "maxValue"))
+            expect_identical(unique(vdf$type[!is.na(vdf[[v]])]), "numeric",
+                info=sprintf("Incorrect %s value for %s", v,
+                    paste(vdf$variable[!is.na(vdf[[v]]) & vdf$type!="numeric"], collapse= ", ")
+                     ) )
 
         # do all numeric variables have a range specified?
         checkForNAs(vdf$minValue[vdf$type == "numeric"])  #TODO - error message form this test is completely unhelpful
