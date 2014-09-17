@@ -1,0 +1,24 @@
+\name{fullChangeOfMethods}
+\alias{fullChangeOfMethods}
+\title{Replaces existing method by a new one in studyName/dataMatchColumns.csv
+and config/methodsDefinitions.csv}
+\usage{
+  fullChangeOfMethods(pattern, replacement)
+}
+\arguments{
+  \item{pattern}{Pattern (i.e. method code) to be found}
+
+  \item{replacement}{Replacement string (i.e. new method
+  code)}
+}
+\description{
+  \code{fullChangeOfMethods} replaces an existing method in
+  the entire database. The output will overwrite the
+  existing dataMatchColumns.csv files and the original
+  config/methodsDefinitions.csv.
+}
+\seealso{
+  \code{\link{changeMethodConfig}} and
+  \code{\link{changeMethodCode}}
+}
+
