@@ -145,7 +145,9 @@ validate_dataMatchColumns.csv <- function(studyName, conf_path = "config", fileP
 
         # Check all unit conversions present
         dataMatchColumns <- dataMatchColumns[!is.na(dataMatchColumns$var_out), ]
+
         # change variable name
+        expect_that(dataMatchColumns$var_in, is_in(names(data)) )
         data <- renameColoumn(data, dataMatchColumns$var_in, dataMatchColumns$var_out)
         # Change units
         # TODO: reduce horrible duplication of code from convertData function
