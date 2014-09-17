@@ -1,5 +1,6 @@
-library(testthat)
-library(dataMashR)
+source("helper-baad.R")
+
+context("Unit tests")
 
 test_that('grepPosition', {
 
@@ -11,10 +12,10 @@ test_that('grepPosition', {
 
     #returns a list
 	expect_that(class(grepPosition(pattern, methodsList)), is_identical_to('list'))
-	
+
 	#list of the same length as vector pattern
 	expect_that(length(grepPosition(pattern, methodsList)), is_identical_to(length(pattern)))
-    
+
     #throws error when input is not a character vector
 	pattern      <-  matrix(0,1,2)
     expect_that(grepPosition(pattern, methodsList), throws_error())
@@ -31,7 +32,7 @@ test_that('grepPosition', {
 
 
 test_that('replaceMethod', {
-    
+
     #testing function replaceMethod
     set.seed(1)
     method           <-  c(paste0(letters[1:3], sample(1:3)), 'c4,a2')
@@ -42,7 +43,7 @@ test_that('replaceMethod', {
 
     #substitute the right data
     expect_that(replaceMethod(replacementList, method, replacement), is_identical_to(c("a1","mx2","c2","mx1,a2")))
-    
+
     #throws error when replacement and replacementList do not have the same length
 	replacement      <-  paste0('mx', 1:3)
     expect_that(replaceMethod(replacementList, method, replacement), throws_error())

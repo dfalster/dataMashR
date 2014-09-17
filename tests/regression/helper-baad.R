@@ -1,4 +1,5 @@
 library(testthat)
+library(dataMashR)
 
 rebuild <- function() {
   ok <- system("make --silent -C example clean baad")
