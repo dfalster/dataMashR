@@ -1,4 +1,5 @@
 library(testthat)
+library(dataMashR)
 
 test_that('grepPosition', {
 
