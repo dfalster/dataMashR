@@ -1,10 +1,21 @@
 ##' @import plyr
 .mashrEnv <- new.env()
 
-startDataMashR <- function(dir.raw = "data", dir.out = "output", dir.config = "config",
+#' Setup dataMashR
+#'
+#' Establshes configuration for dataMashR. Creates object \code{config} within the environment \code{.mashR}, stored within namespace \code{.dataMashR}.
+#' @param dir.data Directory where data files are stored. (default="data")
+#' @param dir.out Directory where to save output (default="output")
+#' @param dir.config Directory where configuration files are stored (default="config")
+#' @param config.files Name of configuration files stored within \code{dir.config}. Must be a list with three elements, \code{conversions}, \code{variables}, \code{post}, each conatinig a filename. (default="list(conversions = 'variableConversion.csv', variables = 'variableDefinitions.csv',post = 'postProcess.R')")
+#' @export
+startDataMashR <- function(dir.data = "data", dir.out = "output", dir.config = "config",
     config.files = list(conversions = "variableConversion.csv", variables = "variableDefinitions.csv",
         post = "postProcess.R")) {
 
+    if(exists("config", .mashrEnv)){
+        rm(list=ls(.mashrEnv), envir= .mashrEnv)
+    }
     var.def <- read.table(file.path(dir.config, config.files$variables), header = TRUE,
         stringsAsFactors = FALSE, sep = ",")  #variable definitions
     conversions <- read.table(file.path(dir.config, config.files$conversions), header = TRUE,
@@ -13,7 +24,7 @@ startDataMashR <- function(dir.raw = "data", dir.out = "output", dir.config = "c
     postProcess <- getFunctionFromSource("postProcess", file.path(dir.config, config.files$post),
         identity)
 
-    .mashrEnv$config <- list(dir.raw = dir.raw, dir.out = dir.out, dir.config = dir.config,
+    .mashrEnv$config <- list(dir.data = dir.data, dir.out = dir.out, dir.config = dir.config,
         conversions = conversions, var.def = var.def, postProcess = postProcess)
 }
 
@@ -38,14 +49,14 @@ mashrDetail <- function(detail) {
 #' @return path to particular dataset
 #' @export
 data.path <- function(studyName, ...) {
-    file.path(mashrDetail("dir.raw"), studyName, ...)
+    file.path(mashrDetail("dir.data"), studyName, ...)
 }
 
 #' Returns all folders within dataMashR data directory
 #' @return object requested
 #' @export
 getStudyNames <- function() {
-    dir(mashrDetail("dir.raw"))
+    dir(mashrDetail("dir.data"))
 }
 
 #' Adds studies to the central dataset
@@ -327,7 +338,7 @@ readNewData <- function(studyName) {
 }
 
 readMatchColumns <- function(studyName) {
-    filename <- file.path(mashrDetail("dir.raw"), studyName, "dataMatchColumns.csv")
+    filename <- file.path(mashrDetail("dir.data"), studyName, "dataMatchColumns.csv")
     var.match <- read.csv(filename, header = TRUE, stringsAsFactors = FALSE, na.strings = c("NA",
         ""), strip.white = TRUE)
 
@@ -358,7 +369,7 @@ studyDataFile <- function(studyName) {
 }
 
 readImport <- function(studyName) {
-    filename <- file.path(mashrDetail("dir.raw"), studyName, "dataImportOptions.csv")
+    filename <- file.path(mashrDetail("dir.data"), studyName, "dataImportOptions.csv")
 
     tmp <- read.csv(filename, header = FALSE, row.names = 1, stringsAsFactors = FALSE)
 
@@ -479,18 +490,18 @@ changeMethodCode  <-  function(studyName, pattern, replacement) {
     write.csv(data, data.path(studyName, 'dataMatchColumns.csv'), row.names=FALSE)
 }
 
-#' Creates a list with positions where replacements will have to occur 
+#' Creates a list with positions where replacements will have to occur
 #'
 #' @description \code{grepPosition} will search for the positions of of fixed patterns
 #' given a list of methods from \code{\link{changeMethodCode}}.
 #' @param studyName Name of a study in \code{data} folder.
 #' @param pattern Pattern (i.e. method code) to be found
 #' @param methodsList List of methods found in studyName/dataMatchColumns.csv
-#' @return List with pattern as names and respective positions where they are found in methodsList 
+#' @return List with pattern as names and respective positions where they are found in methodsList
 #' @seealso \code{\link{changeMethodCode}} and \code{\link{replaceMethod}}
 #' @export
 grepPosition  <-  function(pattern, methodsList) {
-    if(class(pattern) != 'character')  
+    if(class(pattern) != 'character')
         stop('input pattern must be a character vector')
 
     replacementList         <-  vector(mode='list', length=length(pattern))
@@ -505,15 +516,15 @@ grepPosition  <-  function(pattern, methodsList) {
             }
         }
     }
-    
+
     replacementList
 }
 
 #' Replaces patterns on a given vector
 #'
-#' @description \code{replaceMethod} will replace patterns (names in 
+#' @description \code{replaceMethod} will replace patterns (names in
 #' \code{replacementList}) in a vector of methods.
-#' @param replacementList List with pattern as names and respective positions 
+#' @param replacementList List with pattern as names and respective positions
 #' generated by \code{\link{grepPosition}}
 #' @param method character vector of methods from dataMatchColumns.csv
 #' (i.e. dataMatchColumns.csv[["method"]])
@@ -548,7 +559,7 @@ fullChangeOfMethods  <-  function(pattern, replacement) {
         stop('pattern and replacement strings must have the same length')
 
     changeMethodConfig(pattern, replacement)
-    studies  <-  dir(mashrDetail('dir.raw'))
+    studies  <-  dir(mashrDetail('dir.data'))
     sapply(studies, function(x, pattern, replacement)changeMethodCode(x, pattern, replacement), pattern, replacement)
 }
 
@@ -563,8 +574,8 @@ fullChangeOfMethods  <-  function(pattern, replacement) {
 changeMethodConfig  <-  function(pattern, replacement) {
     if(length(pattern) != length(replacement))
         stop('pattern and replacement strings must have the same length')
- 
-    methods  <-  read.csv(file.path(mashrDetail('dir.config'), 'methodsDefinitions.csv'), header=TRUE, stringsAsFactors=FALSE) 
+
+    methods  <-  read.csv(file.path(mashrDetail('dir.config'), 'methodsDefinitions.csv'), header=TRUE, stringsAsFactors=FALSE)
     methods$method[methods$method %in% pattern]  <-  replacement
 
     if(length(methods$method) != length(unique(methods$method))) {

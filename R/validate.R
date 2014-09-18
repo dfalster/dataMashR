@@ -1,6 +1,29 @@
 ##' @import testthat
 NULL
 
+#' @title Check data package
+#' @param path folder where setup is kept
+#' ... extra arguments to pass into \code{startDataMashR}, if configuration is different to default.
+#' @export
+checkPackage <-  function(path, ...) {
+
+    on.exit(setwd(getwd()))
+    setwd(path)
+
+    startDataMashR(...)
+
+    context("Check config")
+
+    validateConfig("config")
+
+    context("Check datasets")
+
+    for(d in dir("data"))
+        validateStudy(d, "config")
+
+}
+
+
 #' @title Check package configuration files
 #' @param ... additonal arguments passed through to validate functions
 #' @export
