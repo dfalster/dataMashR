@@ -125,11 +125,19 @@ validate_data.csv <- function(studyName, conf_path = "config", filePath = "varia
 
     test_that(file.path(studyName,"data.csv"), {
         # does it exist?
-        expect_that(data.path(studyName, "data.csv"), is_present())
+        filename <- data.path(studyName, "data.csv")
+        expect_that(filename, is_present())
         # so read it
-        dat <- readDataRaw(studyName)
+        dat <- dataMashR:::readDataRaw(studyName)
 
         # TODO: check numeric data has right type, by implication this checks whether na.strings defined correctly in dataImportOptions - when this it isn't get errors in fixType function
+
+        expect_that(!any(names(dat)==""), is_true(), info=sprintf("%s contains empty columns", filename))
+
+
+        expect_that(!any(duplicated(names(dat))), is_true(), info=sprintf("%s contains non-unique headers, %s", filename, paste(
+            names(dat)[duplicated(names(dat))], collapse=", ")
+            ))
 
         # does it contain duplicated colnames?
         expect_identical(length(unique(names(dat))), length(names(dat)))
@@ -145,8 +153,9 @@ validate_dataMatchColumns.csv <- function(studyName, conf_path = "config", fileP
         expect_that(data.path(studyName, "dataMatchColumns.csv"), is_present())
 
         # so read it
-        # TODO - add test here
+        # TODO - add test here, for both matchColumns and manipulate
         data <- readDataRaw(studyName)
+        data <- manipulateData(studyName, data)
 
         # read dataMatchColumns
         # TODO - add test here
