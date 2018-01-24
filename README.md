@@ -7,7 +7,7 @@ Daniel Falster, Remko Duursma, Rich FitzJohn, Diego Barneche
 
 An R package for merging data from different studies in a transparent and reproducible fashion.
 
-**WARNING:** Please note, this package is currently under active development. If you decide to use it, please be aware that the package structure is unstable, so future changes may break your scripts.
+**WARNING:** Please note, this package was experimental and is no longer being developed. If you decide to use it, please be aware that no support is given.
 
 ## Installation
 
@@ -19,9 +19,7 @@ devtools::install_github("dataMashR", "dfalster")
 library(dataMashR)
 ```
 
-## Documentation
-
-Reference documentation is available here [here](http://dfalster.github.io/dataMashR) (generated with [staticdocs](https://github.com/hadley/staticdocs)). 
+## Usage
 
 Once you have specified your configuration files, you can build database using
 
